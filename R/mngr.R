@@ -44,8 +44,10 @@ find_mngrfile <- function(dir){
 
 #' @export
 run <- function(name){
-  clean <- system("require-clean-work-dir", intern = TRUE)
-  if (length(clean) > 0 && attr(clean, "status") == 1){
+  suppressWarnings({
+    clean <- system("require-clean-work-dir", intern = TRUE)
+  })
+  if (!is.null(attributes(clean)$status) && attributes(clean)$status == 1){
     stop(clean)
   }
   git_clone_or_pull()
