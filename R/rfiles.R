@@ -49,13 +49,13 @@ rfile <- function(...){
     array <- task_env$config$array
 
     incant <-
-      paste0("DUCTR_RFILE=", path,
-             " DUCTR_RLOGFILE=", r_log_path,
+      paste0("MNGR_RFILE=", path,
+             " MNGR_RLOGFILE=", r_log_path,
              " sbatch -J ", name,
              " --array=1-", array,
              " --parsable ", jp,
              " --output=", slurm_log_path,
-             " ", getOption("mngr_cluster_path"), "/ductr_slurm_submit.darwin",
+             " ", getOption("mngr_cluster_path"), "/mngr_slurm_submit.darwin",
              "\n")
     jobid <- system(incant, intern = TRUE)
     time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")

@@ -1,19 +1,19 @@
-#' Ductr
+#' Mngr
 #' @docType package
-#' @name ductr
+#' @name mngr
 #' @import tools git2r
 NULL
 
 task_env <- new.env()
 
-ductr_postrun <- function(action){
+mngr_postrun <- function(action){
 }
 
 log_filepath <- function(file){
 }
 
 #' @export
-ductr_config <- function(...){
+mngr_config <- function(...){
   # this implementation is rubbish
   elements <- list(...)
   assign("config", elements, envir = task_env)
@@ -29,16 +29,16 @@ load <- function(file, ...){
   load(file = file, ...)
 }
 
-ductr_copy_to_run_dir <- function(){
+mngr_copy_to_run_dir <- function(){
   system("require-clean-work-dir")
 }
 
-find_ductfile <- function(dir){
-  path <- file.path(dir, "Ductfile.R")
+find_mngrfile <- function(dir){
+  path <- file.path(dir, "Mngrfile.R")
   if (file.exists(path)){
     path
   } else {
-    stop("Can't find Ductfile")
+    stop("Can't find Mngrfile")
   }
 }
 
@@ -51,9 +51,9 @@ run <- function(name){
   git_clone_or_pull()
 
   jobids <- c()
-  with_dir(ductr_run_path(), {
-    ductfile <- find_ductfile(getwd())
-    source(ductfile)
+  with_dir(mngr_run_path(), {
+    mngrfile <- find_mngrfile(getwd())
+    source(mngrfile)
 
     expr <- substitute(name)
     if (is.name(expr)){
@@ -114,7 +114,7 @@ ductr_watchlast
 # r function that queries sbatch for job status every few seconds
 
 # data to pass into the R process
-# ductr_arm
+# mngr_arm
 
 # "fP",  which is rather underused by me at the moment
 # git branch which is very heavily used at the moment
@@ -124,10 +124,10 @@ ductr_watchlast
 ## branch/a_1/a_v/adf_2/
 ##   folder variant vs naming variant
 
-## ductr_full_factorial(a = c(1, 2, 3), b = c("e", "d"))
+## mngr_full_factorial(a = c(1, 2, 3), b = c("e", "d"))
 
 ## df <- data.frame(a = c(1, 2), b = c("e", "d"))
-## ductr_fractional_factorial(df)
+## mngr_fractional_factorial(df)
 
 ## to be able to run from the command line, need rdataFile to know about git
 ## because otherwise the relative path is not correct.
@@ -155,8 +155,8 @@ ductr_watchlast
 ## rundir
 ## indir
 
-## ductr_equiv_path("scratch")
+## mngr_equiv_path("scratch")
 
-## ductr_config(logs = "logs",
+## mngr_config(logs = "logs",
 ##            rdata = "rdata",
 ##            plots = "plots")

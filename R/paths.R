@@ -10,7 +10,7 @@ git_sha <- function(){
   system("git rev-parse --abbrev-ref HEAD", intern = TRUE)
 }
 
-ductr_run_git_path <- function(){
+mngr_run_git_path <- function(){
   git_home <- git_home()
   git_sha <- git_sha()
   home <- Sys.getenv("HOME")
@@ -19,17 +19,17 @@ ductr_run_git_path <- function(){
   paste0(home, "/run/", git_home_from_home, "/", git_sha)
 }
 
-ductr_run_path <- function(){
+mngr_run_path <- function(){
   curr_wd <- getwd()
   git_home <- git_home()
   curr_from_git_home <- rel_path(dir = curr_wd, start = git_home)
-  run_git_path <- ductr_run_git_path()
+  run_git_path <- mngr_run_git_path()
   paste0(run_git_path, "/", curr_from_git_home)
 }
 
-ductr_out_path <- function(){
+mngr_out_path <- function(){
   path_fun <- sub_path("^/home", "/scratch", "")
-  path_fun(ductr_run_path())
+  path_fun(mngr_run_path())
 }
 
 is_a_run_dir <- function(dir){

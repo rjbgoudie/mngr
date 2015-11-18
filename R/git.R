@@ -2,7 +2,7 @@ git_clone_or_pull <- function(){
   repo <- git2r::repository(path = getwd())
   git_head_name <- head(repo)@name
 
-  run_git_path <- ductr_run_git_path()
+  run_git_path <- mngr_run_git_path()
   dir.create(run_git_path, recursive = TRUE, showWarnings = FALSE)
 
   is_git_dir <- is_git_dir(run_git_path)

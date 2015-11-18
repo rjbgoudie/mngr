@@ -1,4 +1,4 @@
-Package: ductr
+Package: mngr
 Title: Make, Rake, Workflows etc for R
 Version: 0.1
 Authors@R: person("R.J.B.", "Goudie", email = "rjbgoudie@gmail.com", role = c("aut", "cre"))
