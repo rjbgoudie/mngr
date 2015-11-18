@@ -6,31 +6,11 @@ NULL
 
 task_env <- new.env()
 
-mngr_postrun <- function(action){
-}
-
-log_filepath <- function(file){
-}
-
 #' @export
 mngr_config <- function(...){
   # this implementation is rubbish
   elements <- list(...)
   assign("config", elements, envir = task_env)
-}
-
-save <- function(..., file){
-
-  save(..., file = file)
-}
-
-load <- function(file, ...){
-
-  load(file = file, ...)
-}
-
-mngr_copy_to_run_dir <- function(){
-  system("require-clean-work-dir")
 }
 
 find_mngrfile <- function(dir){
@@ -73,31 +53,6 @@ run <- function(name){
     invisible(TRUE)
   })
   paste(paste(jobids, collapse = ","), r_log_path)
-}
-
-
-shell <- function(){
-
-  cmd <- "ductr_watchlast () {
-    local up=$(tput cuu1)$(tput el) IFS=$'\n\' lines
-  local start=${3:-0} end
-  lines=($(Rscript --no-init-file ~/shovel/rjb_status.R))
-  end=${4:-${#lines[@]}}
-  echo \"${lines[*]:$start:$end}\"
-  while true
-  do
-    lines=($(Rscript -e 'Sys.time()'))
-    end=${4:-${#lines[@]}}
-    printf \"%.0s$up\" \"${lines[@]:$start:$end}\"
-    echo \"${lines[*]:$start:$end}\"
-    sleep ${2:-2}
-    # go up and clear each line
-  done
-};
-ductr_watchlast
-"
-
-
 }
 
 ## #,

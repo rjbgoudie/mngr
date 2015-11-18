@@ -1,15 +1,3 @@
-# rfile <- function(...){
-#   task(..., {
-#     incant <- paste0("R CMD BATCH ", name, ".R")
-#     system(incant)
-#   })
-# }
-
-## RFileTask <- setRefClass("RFileTask",
-##   contains = "Task",
-##   methods = list(
-##     ))
-
 #' @export
 rfiles <- function(){
   rfiles <- list.files(path = ".",
