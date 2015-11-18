@@ -21,7 +21,7 @@ rfile <- function(...){
     path <- normalizePath(paste0(name, ".R"))
 
     r_log_file <-
-      paste0("\\${SLURM_ARRAY_JOB_ID}_\\${SLURM_ARRAY_TASK_ID}-", name, ".Rout")
+      paste0("\\${SLURM_ARRAY_JOB_ID}.\\${SLURM_ARRAY_TASK_ID}-", name, ".Rout")
     r_log_fun <- task_env$config$r_logs
     r_log_path <- r_log_fun(normalizePath("."))
     ensure_exists(r_log_path)
