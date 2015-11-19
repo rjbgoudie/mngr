@@ -20,13 +20,19 @@ rfile <- function(...){
     }
     path <- normalizePath(paste0(name, ".R"))
 
-    r_log_file <-
-      paste0("\\${SLURM_ARRAY_JOB_ID}.\\${SLURM_ARRAY_TASK_ID}-", name, ".Rout")
     r_log_fun <- task_env$config$r_logs
-    r_log_path <- r_log_fun(normalizePath("."))
-    ensure_exists(r_log_path)
-    r_log_path <<- r_log_path
-    r_log_path <- file.path(r_log_path, r_log_file)
+    r_log_dir <- r_log_fun(normalizePath("."))
+    r_log_latest_dir <- paste0(r_log_dir, "-latest/")
+    ensure_exists(r_log_dir)
+    ensure_exists(r_log_latest_dir)
+
+    r_log_latest_file <- paste0("\\${SLURM_ARRAY_TASK_ID}-", name, ".Rout")
+    r_log_specific_file <- paste0("\\${SLURM_ARRAY_JOB_ID}.", r_log_latest_file)
+
+    r_log_specific_path <- file.path(r_log_dir, r_log_specific_file)
+    r_log_latest_path <- file.path(r_log_latest_dir, r_log_latest_file)
+
+    r_log_path <<- r_log_specific_path
 
     slurm_log_file <- paste0("%A-%a-", name, ".txt")
     slurm_log_fun <- task_env$config$slurm_logs
@@ -38,7 +44,8 @@ rfile <- function(...){
 
     incant <-
       paste0("MNGR_RFILE=", path,
-             " MNGR_RLOGFILE=", r_log_path,
+             " MNGR_RLOGFILE=", r_log_specific_path,
+             " MNGR_RLOGLATESTFILE=", r_log_latest_path,
              " sbatch -J ", name,
              " --array=1-", array,
              " --parsable ", jp,
