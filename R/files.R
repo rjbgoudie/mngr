@@ -5,7 +5,7 @@ file_path <- function(file,
                       extension = ""){
   output_fun <- task_env$config$output
   np <- normalizePath(".")
-  pre <- output_fun(mngr_run_path())
+  pre <- output_fun(run_dir())
 
   directory <- ifelse(directory == "", "", paste0(directory, "/"))
   if (isTRUE(arm)){

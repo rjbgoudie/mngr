@@ -33,7 +33,7 @@ run <- function(name){
   git_clone_or_pull()
 
   jobids <- c()
-  with_dir(mngr_run_path(), {
+  with_dir(run_dir(), {
     mngrfile <- find_mngrfile(getwd())
     source(mngrfile)
 

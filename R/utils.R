@@ -5,6 +5,18 @@ with_dir <- function(dir,  expr){
   evalq(expr)
 }
 
+# uses sub for grep replacement
+#' @export
+sub_path <- function(pattern, replacement, dir){
+  function(path){
+    path <- normalizePath(path, mustWork = FALSE)
+    out <- sub(pattern = pattern,
+               replacement = replacement,
+               x = path)
+    file.path(out, dir)
+  }
+}
+
 rel_path <- function(dir,
                      start,
                      file.sep = .Platform$file.sep,
@@ -57,4 +69,8 @@ ensure_exists <- function(directories){
                  showWarnings = FALSE)
     }
   }
+}
+
+system_in_dir <- function(command, dir, ...){
+  system(command = paste0("(cd ", dir, "; ", command, ")"), ...)
 }
