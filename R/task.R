@@ -1,3 +1,6 @@
+#' Check for task existence
+#'
+#' @param name name of task
 task_exists <- function(name){
   task_exists <- FALSE
   tasklist_non_null <- length(task_env$tasklist) > 0
@@ -7,6 +10,10 @@ task_exists <- function(name){
   task_exists
 }
 
+#' Find task id
+#'
+#' @param name task name
+#' @param exists does the task exist?
 task_find_id <- function(name, exists = task_exists(name)){
   if (exists){
     which(name == names(task_env$tasklist))
@@ -15,12 +22,20 @@ task_find_id <- function(name, exists = task_exists(name)){
   }
 }
 
+#' Create task
+#'
+#' @param name task name
+#' @param action a set of expressions
 task_create <- function(name, action){
   task <- Task(name = name)
   task_env$tasklist <- c(list(task), task_env$tasklist)
   names(task_env$tasklist)[1] <- name
 }
 
+#' Create a new task
+#'
+#' @param name task name
+#' @param action a set of expressions
 #' @author RJB Goudie
 #' @export
 `%task%` <- task <- function(name, action){
@@ -40,7 +55,10 @@ task_create <- function(name, action){
   invisible(TRUE)
 }
 
-
+#' Set up task dependencies
+#'
+#' @param a task name
+#' @param b task name
 #' @author RJB Goudie
 #' @export
 `%d%` <- `%depends%` <- depends <- function(a, b){

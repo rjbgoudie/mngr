@@ -6,6 +6,9 @@ NULL
 
 task_env <- new.env()
 
+#' Configure mngr
+#'
+#' @param ... a list of values to replace default config
 #' @export
 mngr_config <- function(...){
   # this implementation is rubbish
@@ -13,6 +16,8 @@ mngr_config <- function(...){
   assign("config", elements, envir = task_env)
 }
 
+#' Find mngrfile
+#' @param dir a path
 find_mngrfile <- function(dir){
   path <- file.path(dir, "Mngrfile.R")
   if (file.exists(path)){
@@ -22,6 +27,8 @@ find_mngrfile <- function(dir){
   }
 }
 
+#' Execute the task
+#' @param name a task name
 #' @export
 run <- function(name){
   suppressWarnings({

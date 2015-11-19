@@ -1,3 +1,5 @@
+#' Build factorial experiment
+#' @param ... passed to expand.grid
 #' @export
 arms_factorial <- function(...){
   arms <- expand.grid(...)
@@ -7,6 +9,7 @@ arms_factorial <- function(...){
   assign("arms", arms, envir = task_env)
 }
 
+#' Unique name for arm
 arm_name <- function(){
   arm <- task_env$arms[.arm, ]
   o <- order(names(arm))

@@ -1,3 +1,4 @@
+# Monitor slurm jobs
 #' @export
 monitor <- function(){
   suppressWarnings({

@@ -1,3 +1,9 @@
+#' Build a file path
+#'
+#' @param file file name
+#' @param arm make arm-specific
+#' @param directory directory name
+#' @param extension file extension
 #' @export
 file_path <- function(file,
                       arm = T,
@@ -18,40 +24,62 @@ file_path <- function(file,
   paste0(path_directory, file, extension)
 }
 
+#' path to rds file
+#'
+#' @param ... passsed to file_path
 #' @export
 rds_file <- function(...){
   file_path(..., directory = "rds", extension = "rds")
 }
 
+#' path to pdf file
+#'
+#' @param ... passsed to file_path
 #' @export
 pdf_file <- function(...){
   file_path(..., directory = "plots", extension = "pdf")
 }
 
+#' save file
+#' @param file file name
+#' @param ... passed to default save method
 #' @export
 save <- function(..., file){
   warning("Please use saveRDS instead")
-  base:::saveRDS(..., file = file)
+  saveRDS(..., file = file)
 }
 
+#' save rds file
+#' @param file file name
+#' @param ... passed to default save
 #' @export
 saveRDS <- function(..., file){
   unlink(file)
-  base:::save(..., file = file)
+  base:::saveRDS(..., file = file)
+
 }
 
+#' pdf device
+#' @param file file name
+#' @param ... passed to default pdf
 #' @export
 pdf <- function(file, ...){
   unlink(file)
   grDevices:::pdf(file = file, ...)
 }
 
+#' tiff device
+#' @param file file name
+#' @param ... passed to default tiff
 #' @export
 tiff <- function(file, ...){
   unlink(file)
   grDevices:::tiff(file = file, ...)
 }
 
+#' png device
+#' @param file file name
+#' @param ... passed to default png
 #' @export
 png <- function(file, ...){
   unlink(file)

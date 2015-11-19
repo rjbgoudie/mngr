@@ -1,3 +1,4 @@
+#' Add all R files in the current directory as tasks
 #' @export
 rfiles <- function(){
   rfiles <- list.files(path = ".",
@@ -8,6 +9,8 @@ rfiles <- function(){
   message("Added ", nfiles, " R files")
 }
 
+#' Add rfile as a slurm task
+#' @param ... passed to task()
 #' @export
 rfile <- function(...){
   task(..., {

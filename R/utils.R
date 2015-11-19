@@ -1,3 +1,7 @@
+#' Evaluate expression with working directory
+#'
+#' @param dir path to directory in which to evaluate expression
+#' @param expr an expression
 with_dir <- function(dir,  expr){
   old_wd <- getwd()
   setwd(dir)
@@ -5,7 +9,13 @@ with_dir <- function(dir,  expr){
   evalq(expr)
 }
 
-# uses sub for grep replacement
+#' Manipuate a path
+#'
+#' uses sub for grep replacement
+#'
+#' @param pattern character string containing a regular expression
+#' @param replacement a replacement for matched pattern
+#' @param dir a directory to tack on the end of the path
 #' @export
 sub_path <- function(pattern, replacement, dir){
   function(path){
@@ -17,6 +27,13 @@ sub_path <- function(pattern, replacement, dir){
   }
 }
 
+#' Find relative path to dir from start
+#'
+#' @param dir the directory to find a path to
+#' @param start the starting location
+#' @param file.sep path separator
+#' @param up_one platform specific up one level notation
+#' @param same platform specific same directory
 rel_path <- function(dir,
                      start,
                      file.sep = .Platform$file.sep,
@@ -61,16 +78,24 @@ rel_path <- function(dir,
   }
 }
 
-ensure_exists <- function(directories){
-  for (dir in directories){
-    if (!file.exists(dir)){
-      dir.create(dir,
+#' Ensure directory exists
+#'
+#' @param dir path to the directory
+ensure_exists <- function(dir){
+  for (x in dir){
+    if (!file.exists(x)){
+      dir.create(x,
                  recursive = TRUE,
                  showWarnings = FALSE)
     }
   }
 }
 
+#' Evalutate system command in directory
+#'
+#' @param command a system call
+#' @param dir path to directory
+#' @param ... passed to system()
 system_in_dir <- function(command, dir, ...){
   system(command = paste0("(cd ", dir, "; ", command, ")"), ...)
 }

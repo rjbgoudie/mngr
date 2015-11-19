@@ -1,3 +1,6 @@
+#' Clone or pull to the run dir
+#'
+#' @param dir directory to clone or pull to the corresponding rundir
 git_clone_or_pull <- function(dir = getwd()){
   repo <- git2r::repository(path = dir)
   git_head_name <- head(repo)@name
