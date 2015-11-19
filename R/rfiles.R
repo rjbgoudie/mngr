@@ -34,7 +34,7 @@ rfile <- function(...){
 
     r_log_path <<- r_log_specific_path
 
-    slurm_log_file <- paste0("%A-%a-", name, ".txt")
+    slurm_log_file <- paste0("%A.%a-", name, ".txt")
     slurm_log_fun <- task_env$config$slurm_logs
     slurm_log_path <- slurm_log_fun(normalizePath("."))
     ensure_exists(slurm_log_path)
