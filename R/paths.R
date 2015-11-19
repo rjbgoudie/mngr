@@ -9,10 +9,14 @@ mngr_run_git_path <- function(){
 
 mngr_run_path <- function(){
   curr_wd <- getwd()
-  git_home <- git_home()
-  curr_from_git_home <- rel_path(dir = curr_wd, start = git_home)
-  run_git_path <- mngr_run_git_path()
-  paste0(run_git_path, "/", curr_from_git_home)
+  if (!is_a_run_dir(curr_wd)){
+    git_home <- git_home()
+    curr_from_git_home <- rel_path(dir = curr_wd, start = git_home)
+    run_git_path <- mngr_run_git_path()
+    paste0(run_git_path, "/", curr_from_git_home)
+  } else {
+    curr_wd
+  }
 }
 
 mngr_out_path <- function(){
