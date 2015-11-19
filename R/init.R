@@ -15,6 +15,13 @@ startup <- function(){
     cat("Arm:", .arm, "\n")
   }
   else {
-    warning("Not in BATCH mode - not loading arguments\n")
+    message("INTERACTIVE MODE: assuming .arm = 1\n")
+    assign(x = ".arm", value = 1, envir = parent.frame(1))
   }
+  mngrfile <- find_mngrfile(getwd())
+  source(mngrfile)
+  arm <- task_env$arms[.arm, ]
+  attach(arm)
+  cat("Arm values\n")
+  unlist(arm)
 }
