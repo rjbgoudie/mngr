@@ -31,13 +31,18 @@ monitor <- function(){
   })
 
   out <- data.frame(names = basenames, w = warnings, e = errors, f = final)
-  if (nrow(jobs) > 0){
+  if (!is.null(jobs) && is.data.frame(jobs) && nrow(jobs) > 0){
+    cat("Queue status:\n")
     print(jobs)
+    cat("\n")
   }
 
-  for (i in seq_len(nrow(out))){
-    cat(as.matrix(out)[i, ])
-    cat("\n")
+  if (!is.null(out) && nrow(out) > 0){
+    cat("Rout status:\n")
+    for (i in seq_len(nrow(out))){
+      cat(as.matrix(out)[i, ])
+      cat("\n")
+    }
   }
 
   if (sum(errors == "1") > 0){
