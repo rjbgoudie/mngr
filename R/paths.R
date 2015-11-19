@@ -1,15 +1,3 @@
-git_home <- function(){
-  system("git rev-parse --show-toplevel", intern = TRUE)
-}
-
-git_sha_short <- function(){
-  system("git rev-parse --short HEAD", intern = TRUE)
-}
-
-git_sha <- function(){
-  system("git rev-parse --abbrev-ref HEAD", intern = TRUE)
-}
-
 mngr_run_git_path <- function(){
   git_home <- git_home()
   git_sha <- git_sha()

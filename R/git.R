@@ -29,3 +29,15 @@ is_git_dir <- function(dir){
     FALSE
   }
 }
+
+git_home <- function(){
+  system("git rev-parse --show-toplevel", intern = TRUE)
+}
+
+git_sha_short <- function(){
+  system("git rev-parse --short HEAD", intern = TRUE)
+}
+
+git_sha <- function(){
+  system("git rev-parse --abbrev-ref HEAD", intern = TRUE)
+}
