@@ -16,7 +16,7 @@ rfile <- function(...){
   task(..., {
     id <- task_find_id(name, exists = TRUE)
     jp <- task_env$tasklist[[id]]$jobid_prereqs()
-    jp <- if (!is.null(jp)){
+    jp <- if (!is.null(jp) && length(jp) > 0){
       paste0("--dependency=afterok:", paste(jp, collapse = ","), " ")
     } else {
       ""

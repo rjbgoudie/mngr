@@ -89,7 +89,6 @@ Task <- setRefClass(
     prereqs = "character", # a list of task names
     actions = "list",
     already_invoked = "logical",
-    needed = "logical",
     jobid = "character",
     prereq_jobids = "character",
     r_log_path = "character"
@@ -112,7 +111,15 @@ Task <- setRefClass(
     if (!already_invoked){
       already_invoked <<- TRUE
       invoke_prereqs()
-      lapply(actions, eval.parent)
+      if (isTRUE(.self$needed())){
+        state_fun <- task_env$config$state
+        state_dir <- state_fun(normalizePath("."))
+        state_file <- paste0(state_dir, "/", name)
+        dir.create(state_dir, showWarnings = FALSE, recursive = TRUE)
+        file.create(state_file)
+
+        lapply(actions, eval.parent)
+      }
     }
     unique(c(prereq_jobids, jobid))
   },
@@ -126,13 +133,65 @@ Task <- setRefClass(
   },
   jobid_prereqs = function(){
     if (length(prereqs) > 0){
-      sapply(prereqs, function(name){
+      unlist(sapply(prereqs, function(name){
         id <- task_find_id(name, exists = TRUE)
         task_env$tasklist[[id]]$jobid
-      })
+      }))
     } else {
       c()
     }
+  },
+  needed = function(){
+    state_fun <- task_env$config$state
+    state_dir <- state_fun(normalizePath("."))
+    state_file <- paste0(state_dir, "/", name)
+    never_run <- !file.exists(state_file)
+
+    command <- paste0("git log -1 --format=%cD ", name, ".R")
+    r_file_date <- system(command, intern = TRUE)
+    last_edited_date <- strptime(r_file_date, format = "%a,  %d %b %Y %T %z")
+
+    edited_since_last_run <- FALSE
+    if (!never_run){
+      last_run_date <- file.info(state_file)$mtime
+      edited_since_last_run <- last_edited_date > last_run_date
+    }
+    prerequisite_run_more_recently <- FALSE
+    most_recent_prereq <- FALSE
+    if (length(prereqs) > 0){
+      prereqs_timestamp <- lapply(prereqs, function(name){
+        id <- task_find_id(name, exists = TRUE)
+        task_env$tasklist[[id]]$timestamp()
+      })
+      most_recent_prereq <- do.call("max", prereqs_timestamp)
+    }
+    prerequisite_run_more_recently <- most_recent_prereq > timestamp()
+
+    # flesh this out
+    build_all <- FALSE
+
+    never_run ||
+      edited_since_last_run ||
+      prerequisite_run_more_recently ||
+      build_all
+  },
+  timestamp = function(){
+    command <- paste0("git log -1 --format=%cD ", name, ".R")
+    r_file_date <- system(command, intern = TRUE)
+    r_file_date <- strptime(r_file_date, format = "%a,  %d %b %Y %T %z")
+
+    state_fun <- task_env$config$state
+    state_dir <- state_fun(normalizePath("."))
+    state_file <- paste0(state_dir, "/", name)
+
+    timestamp <- r_file_date
+    if (file.exists(state_file)){
+      state_file_date <- file.info(state_file)$mtime
+      if (state_file_date > r_file_date){
+        timestamp <- state_file_date
+      }
+    }
+    timestamp
   }
   )
 )
