@@ -120,10 +120,8 @@ Task <- setRefClass(
           message("Invoking ", name)
         }
 
-        if (length(actions) > 0){
-          state_file(ensure_dir = TRUE, create = TRUE)
-          lapply(actions, eval.parent)
-        }
+        state_file(ensure_dir = TRUE, create = TRUE)
+        lapply(actions, eval.parent)
       } else {
         if (debug){
           message(name, " not needed")
@@ -154,14 +152,44 @@ Task <- setRefClass(
     }
   },
   needed = function(debug = FALSE){
-    if (debug){
-      message(name, " is needed")
+    state_file <- state_file(ensure_dir = FALSE, create = FALSE)
+    never_run <- !file.exists(state_file)
+
+    prerequisite_run_more_recently <- FALSE
+    most_recent_prereq <- FALSE
+    if (length(prereqs) > 0){
+      prereqs_timestamp <- lapply(prereqs, function(name){
+        id <- task_find_id(name, exists = TRUE)
+        task_env$tasklist[[id]]$timestamp()
+      })
+      most_recent_prereq <- do.call("max", prereqs_timestamp)
     }
-    TRUE
+    prerequisite_run_more_recently <- most_recent_prereq > timestamp()
+
+    # flesh this out
+    build_all <- FALSE
+
+    out <- never_run ||
+      prerequisite_run_more_recently ||
+      build_all
+
+    if (debug){
+      message("Needed status for ", name, " is ", out, ". ",
+              "never_run: ", never_run, ". ",
+              "prerequistite_run_more_recently: ", prerequisite_run_more_recently,
+              ". ",
+              "build_all: ", build_all, ".")
+    }
+    out
   },
   timestamp = function(){
-    .early <- strptime("01/01/1900", "%d/%m/%Y")
-    .early
+    state_file <- state_file(ensure_dir = FALSE, create = FALSE)
+
+    if (file.exists(state_file)){
+      file.info(state_file)$mtime
+    } else {
+      Sys.time()
+    }
   },
   state_file = function(ensure_dir = TRUE, create = FALSE){
     state_fun <- task_env$config$state
