@@ -30,7 +30,7 @@ find_mngrfile <- function(dir){
 #' Execute the task
 #' @param name a task name
 #' @export
-run <- function(name){
+run <- function(name, debug = FALSE){
   suppressWarnings({
     clean <- system("require-clean-work-dir", intern = TRUE)
   })
@@ -50,7 +50,7 @@ run <- function(name){
     }
     id <- task_find_id(name, exists = TRUE)
     lapply(task_env$post_run_list, eval)
-    new_jobid <- task_env$tasklist[[id]]$invoke()
+    new_jobid <- task_env$tasklist[[id]]$invoke(debug = debug)
     jobids <- c(jobids, new_jobid)
 
     # this is the wrong place for this

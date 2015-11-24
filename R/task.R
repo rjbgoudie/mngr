@@ -107,24 +107,37 @@ Task <- setRefClass(
   add_action = function(x) {
     actions <<- c(list(x), actions)
   },
-  invoke = function() {
+  invoke = function(debug = FALSE) {
     if (!isTRUE(already_invoked)){
       already_invoked <<- TRUE
-      invoke_prereqs()
-      if (isTRUE(.self$needed())){
+      if (debug){
+        message("Invoking prerequisties for ", name)
+      }
+      invoke_prereqs(debug = debug)
+      if (isTRUE(.self$needed(debug = debug))){
+
+        if (debug){
+          message("Invoking ", name)
+        }
+
         state_file(ensure_dir = TRUE, create = TRUE)
         lapply(actions, eval.parent)
       } else {
-        message(name, " not needed")
+        if (debug){
+          message(name, " not needed")
+        }
       }
     }
     unique(c(prereq_jobids, jobid))
   },
-  invoke_prereqs = function(){
+  invoke_prereqs = function(debug = FALSE){
     if (length(prereqs) > 0){
+      if (debug){
+        message("Running prereqs for ", name)
+      }
       prereq_jobids <<- unlist(sapply(prereqs, function(name){
         id <- task_find_id(name, exists = TRUE)
-        task_env$tasklist[[id]]$invoke()
+        task_env$tasklist[[id]]$invoke(debug = debug)
       }))
     }
   },
@@ -138,7 +151,10 @@ Task <- setRefClass(
       c()
     }
   },
-  needed = function(){
+  needed = function(debug = FALSE){
+    if (debug){
+      message(name, " is needed")
+    }
     TRUE
   },
   timestamp = function(){
@@ -177,7 +193,7 @@ RTask <- setRefClass(
   "RTask",
   contains = "Task",
   methods = list(
-    needed = function(){
+    needed = function(debug = FALSE){
     state_file <- state_file(ensure_dir = FALSE, create = FALSE)
     never_run <- !file.exists(state_file)
 
@@ -203,11 +219,20 @@ RTask <- setRefClass(
 
     # flesh this out
     build_all <- FALSE
-
-    never_run ||
+    out <- never_run ||
       edited_since_last_run ||
       prerequisite_run_more_recently ||
       build_all
+
+    if (debug){
+      message("Needed status for ", name, " is ", out, ". ",
+              "never_run: ", never_run, ". ",
+              "edited_since_last_run: ", edited_since_last_run, ". ",
+              "prerequistite_run_more_recently: ", prerequisite_run_more_recently,
+              ". ",
+              "build_all: ", build_all, ".")
+    }
+    out
   },
   timestamp = function(){
     command <- paste0("git log -1 --format=%cD ", name, ".R")
