@@ -99,3 +99,5 @@ ensure_exists <- function(dir){
 system_in_dir <- function(command, dir, ...){
   system(command = paste0("(cd ", dir, "; ", command, ")"), ...)
 }
+
+`%||%` <- function(a,  b) if (is.null(a)) b else a
