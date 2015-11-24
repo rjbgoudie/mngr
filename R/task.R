@@ -113,8 +113,9 @@ Task <- setRefClass(
       invoke_prereqs()
       if (isTRUE(.self$needed())){
         state_file(ensure_dir = TRUE, create = TRUE)
-
         lapply(actions, eval.parent)
+      } else {
+        message(name, " not needed")
       }
     }
     unique(c(prereq_jobids, jobid))
