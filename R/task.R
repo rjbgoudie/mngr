@@ -145,7 +145,9 @@ Task <- setRefClass(
     if (length(prereqs) > 0){
       unlist(sapply(prereqs, function(name){
         id <- task_find_id(name, exists = TRUE)
-        task_env$tasklist[[id]]$jobid
+        parent <- task_env$tasklist[[id]]$jobid
+        ancestors <- task_env$tasklist[[id]]$jobid_prereqs()
+        c(parent, ancestors)
       }))
     } else {
       c()
