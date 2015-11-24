@@ -11,7 +11,7 @@ arms_factorial <- function(...){
 
 #' Unique name for arm
 arm_name <- function(){
-  arm <- task_env$arms[.arm, ]
+  arm <- task_env$arms[.arm, , drop = FALSE]
   o <- order(names(arm))
   paste(.arm,
         paste(names(arm)[o], arm[o],  sep = ":",  collapse = ","),

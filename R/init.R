@@ -20,7 +20,7 @@ startup <- function(){
   }
   mngrfile <- find_mngrfile(getwd())
   source(mngrfile)
-  arm <- task_env$arms[.arm, ]
+  arm <- task_env$arms[.arm, , drop = FALSE]
   attach(arm)
   cat("Arm values\n")
   unlist(arm)
