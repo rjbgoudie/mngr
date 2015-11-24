@@ -94,9 +94,9 @@ Task <- setRefClass(
     r_log_path = "character"
   ),
   methods = list(
-    initialize = function(name = name){
-    name <<- name
+    initialize = function(...){
     already_invoked <<- FALSE
+    initFields(...)
   },
   set_name = function(x) {
     name <<- x
@@ -108,7 +108,7 @@ Task <- setRefClass(
     actions <<- c(list(x), actions)
   },
   invoke = function() {
-    if (!already_invoked){
+    if (!isTRUE(already_invoked)){
       already_invoked <<- TRUE
       invoke_prereqs()
       if (isTRUE(.self$needed())){
@@ -142,6 +142,19 @@ Task <- setRefClass(
     }
   },
   needed = function(){
+    TRUE
+  },
+  timestamp = function(){
+    Sys.time()
+  }
+  )
+)
+
+RTask <- setRefClass(
+  "RTask",
+  contains = "Task",
+  methods = list(
+    needed = function(){
     state_fun <- task_env$config$state
     state_dir <- state_fun(normalizePath("."))
     state_file <- paste0(state_dir, "/", name)
