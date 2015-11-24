@@ -30,7 +30,7 @@ find_mngrfile <- function(dir){
 #' Execute the task
 #' @param name a task name
 #' @export
-run <- function(name, debug = FALSE){
+run <- function(name = "default", debug = FALSE){
   suppressWarnings({
     clean <- system("require-clean-work-dir", intern = TRUE)
   })
