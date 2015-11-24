@@ -120,8 +120,10 @@ Task <- setRefClass(
           message("Invoking ", name)
         }
 
-        state_file(ensure_dir = TRUE, create = TRUE)
-        lapply(actions, eval.parent)
+        if (length(actions) > 0){
+          state_file(ensure_dir = TRUE, create = TRUE)
+          lapply(actions, eval.parent)
+        }
       } else {
         if (debug){
           message(name, " not needed")
@@ -158,7 +160,8 @@ Task <- setRefClass(
     TRUE
   },
   timestamp = function(){
-    Sys.time()
+    .early <- strptime("01/01/1900", "%d/%m/%Y")
+    .early
   },
   state_file = function(ensure_dir = TRUE, create = FALSE){
     state_fun <- task_env$config$state
