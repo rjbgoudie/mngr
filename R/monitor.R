@@ -31,25 +31,29 @@ monitor <- function(){
     })
   })
 
-  out <- data.frame(names = basenames, w = warnings, e = errors, f = final)
-  if (!is.null(jobs) && is.data.frame(jobs) && nrow(jobs) > 0){
-    cat("Queue status:\n")
-    print(jobs)
-    cat("\n")
-  }
-
-  if (!is.null(out) && nrow(out) > 0){
-    cat("Rout status:\n")
-    for (i in seq_len(nrow(out))){
-      cat(as.matrix(out)[i, ])
+  if (args[[1]] != "No"){
+    out <- data.frame(names = basenames, w = warnings, e = errors, f = final)
+    if (!is.null(jobs) && is.data.frame(jobs) && nrow(jobs) > 0){
+      cat("Queue status:\n")
+      print(jobs)
       cat("\n")
     }
-  }
 
-  if (sum(errors == "1") > 0){
-    cat("\u274c  Note errors")
-  }
-  if (sum(warnings == "1") > 0){
-    cat("\u274c  Note warnings")
+    if (!is.null(out) && nrow(out) > 0){
+      cat("Rout status:\n")
+      for (i in seq_len(nrow(out))){
+        cat(as.matrix(out)[i, ])
+        cat("\n")
+      }
+    }
+
+    if (sum(errors == "1") > 0){
+      cat("\u274c  Note errors")
+    }
+    if (sum(warnings == "1") > 0){
+      cat("\u274c  Note warnings")
+    }
+  } else {
+    message("No jobs submitted")
   }
 }

@@ -59,7 +59,13 @@ run <- function(name, debug = FALSE){
 
     invisible(TRUE)
   })
-  paste(paste(jobids, collapse = ","), r_log_path)
+  jobids_length <- length(jobids)
+  if (jobids_length > 0){
+    message(jobids_length, " jobs submitted")
+    paste(paste(jobids, collapse = ","), r_log_path)
+  } else {
+    message("No jobs submitted")
+  }
 }
 
 ## #,
