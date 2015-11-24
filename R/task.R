@@ -112,11 +112,7 @@ Task <- setRefClass(
       already_invoked <<- TRUE
       invoke_prereqs()
       if (isTRUE(.self$needed())){
-        state_fun <- task_env$config$state
-        state_dir <- state_fun(normalizePath("."))
-        state_file <- paste0(state_dir, "/", name)
-        dir.create(state_dir, showWarnings = FALSE, recursive = TRUE)
-        file.create(state_file)
+        state_file(ensure_dir = TRUE, create = TRUE)
 
         lapply(actions, eval.parent)
       }
@@ -146,6 +142,32 @@ Task <- setRefClass(
   },
   timestamp = function(){
     Sys.time()
+  },
+  state_file = function(ensure_dir = TRUE, create = FALSE){
+    state_fun <- task_env$config$state
+    state_dir <- state_fun(normalizePath("."))
+
+    if (isTRUE(ensure_dir)){
+      ensure_exists(state_dir)
+    }
+    state_file <- paste0(state_dir, "/", name)
+
+    if (isTRUE(create)){
+      file.create(state_file)
+    } else {
+      state_file
+    }
+  },
+  slurm_file = function(ensure_dir = TRUE){
+    slurm_log_fun <- task_env$config$slurm_logs
+    slurm_log_dir <- slurm_log_fun(normalizePath("."))
+
+    if (isTRUE(ensure_dir)){
+      ensure_exists(slurm_log_dir)
+    }
+
+    slurm_log_file <- paste0("%A.%a-", name, ".txt")
+    file.path(slurm_log_dir, slurm_log_file)
   }
   )
 )
@@ -155,9 +177,7 @@ RTask <- setRefClass(
   contains = "Task",
   methods = list(
     needed = function(){
-    state_fun <- task_env$config$state
-    state_dir <- state_fun(normalizePath("."))
-    state_file <- paste0(state_dir, "/", name)
+    state_file <- state_file(ensure_dir = FALSE, create = FALSE)
     never_run <- !file.exists(state_file)
 
     command <- paste0("git log -1 --format=%cD ", name, ".R")
@@ -193,9 +213,7 @@ RTask <- setRefClass(
     r_file_date <- system(command, intern = TRUE)
     r_file_date <- strptime(r_file_date, format = "%a,  %d %b %Y %T %z")
 
-    state_fun <- task_env$config$state
-    state_dir <- state_fun(normalizePath("."))
-    state_file <- paste0(state_dir, "/", name)
+    state_file <- state_file(ensure_dir = FALSE, create = FALSE)
 
     timestamp <- r_file_date
     if (file.exists(state_file)){
@@ -205,6 +223,28 @@ RTask <- setRefClass(
       }
     }
     timestamp
+  },
+  r_log_latest_file = function(ensure_dir = TRUE){
+    r_log_fun <- task_env$config$r_logs
+    r_log_dir <- r_log_fun(normalizePath("."))
+    r_log_latest_dir <- paste0(r_log_dir, "-latest/")
+
+    if (isTRUE(ensure_dir)){
+      ensure_exists(r_log_latest_dir)
+    }
+    r_log_latest_file <- paste0("\\${SLURM_ARRAY_TASK_ID}-", name, ".Rout")
+    file.path(r_log_latest_dir, r_log_latest_file)
+  },
+  r_log_specific_file = function(ensure_dir = TRUE){
+    r_log_fun <- task_env$config$r_logs
+    r_log_dir <- r_log_fun(normalizePath("."))
+
+    if (isTRUE(ensure_dir)){
+      ensure_exists(r_log_dir)
+    }
+    r_log_latest_file <- paste0("\\${SLURM_ARRAY_TASK_ID}-", name, ".Rout")
+    r_log_specific_file <- paste0("\\${SLURM_ARRAY_JOB_ID}.", r_log_latest_file)
+    file.path(r_log_dir, r_log_specific_file)
   }
   )
 )
