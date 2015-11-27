@@ -107,6 +107,9 @@ Task <- setRefClass(
   add_action = function(x) {
     actions <<- c(list(x), actions)
   },
+  set_jobid = function(x){
+    jobid <<- x
+  },
   invoke = function(debug = FALSE) {
     if (!isTRUE(already_invoked)){
       already_invoked <<- TRUE
@@ -121,7 +124,14 @@ Task <- setRefClass(
         }
 
         state_file(ensure_dir = TRUE, create = TRUE)
-        lapply(actions, eval.parent)
+        action_class <- sapply(actions, class)
+        lapply(actions[action_class == "{"], eval.parent)
+        lapply(actions[action_class == "call"], function(action){
+          eval(action)(.self)
+        })
+        lapply(actions[action_class == "function"], function(action){
+          action(.self)
+        })
       } else {
         if (debug){
           message(name, " not needed")
@@ -139,7 +149,7 @@ Task <- setRefClass(
         id <- task_find_id(name, exists = TRUE)
         task_env$tasklist[[id]]$invoke(debug = debug)
       }))
-  }
+    }
   },
   jobid_prereqs = function(){
     if (length(prereqs) > 0){

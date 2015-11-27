@@ -24,13 +24,7 @@ rfile_create <- function(name, action){
 #' @export
 rfile <- function(name){
   expr <- substitute(name)
-  queue <- task_env$config$queue %||% "sand"
-
-  if (queue == "tesla"){
-    action <- slurm_tesla_r_job
-  } else {
-    action <- slurm_sand_r_job
-  }
+  action <- slurm_r_job
 
   if (is.name(expr)){
     name <- as.character(expr)
