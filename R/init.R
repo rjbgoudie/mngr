@@ -15,8 +15,13 @@ startup <- function(){
     cat("Arm:", .arm, "\n")
   }
   else {
-    message("INTERACTIVE MODE: assuming .arm = 1\n")
-    assign(x = ".arm", value = 1, envir = parent.frame(1))
+    if (exists(".arm", envir = parent.frame(1))){
+      .arm <- get(".arm", envir = parent.frame(1))
+    } else {
+      .arm <- 1
+    }
+    assign(x = ".arm", value = .arm, envir = parent.frame(1))
+    message("INTERACTIVE MODE: .arm = ", .arm, "\n")
   }
   mngrfile <- find_mngrfile(getwd())
   source(mngrfile)
