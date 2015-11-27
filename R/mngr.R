@@ -48,7 +48,7 @@ run <- function(name = "default", debug = FALSE){
     if (is.name(expr)){
       name <- as.character(expr)
     }
-    id <- task_find_id(name, exists = TRUE)
+    id <- task_find_id(name)
     lapply(task_env$post_run_list, eval)
     new_jobid <- task_env$tasklist[[id]]$invoke(debug = debug)
     jobids <- c(jobids, new_jobid)
