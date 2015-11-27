@@ -135,11 +135,11 @@ Task <- setRefClass(
       if (debug){
         message("Running prereqs for ", name)
       }
-      prereq_jobids <<- unlist(sapply(prereqs, function(name){
+      prereq_jobids <<- unlist(lapply(prereqs, function(name){
         id <- task_find_id(name, exists = TRUE)
         task_env$tasklist[[id]]$invoke(debug = debug)
       }))
-    }
+  }
   },
   jobid_prereqs = function(){
     if (length(prereqs) > 0){
