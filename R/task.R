@@ -299,7 +299,7 @@ RTask <- setRefClass(
     }
     timestamp
   },
-  r_log_latest_file = function(ensure_dir = TRUE){
+  r_log_latest_file = function(ensure_dir = TRUE, index){
     r_log_fun <- task_env$config$r_logs
     r_log_dir <- r_log_fun(normalizePath("."))
     r_log_latest_dir <- paste0(r_log_dir, "-latest/")
@@ -307,18 +307,18 @@ RTask <- setRefClass(
     if (isTRUE(ensure_dir)){
       ensure_exists(r_log_latest_dir)
     }
-    r_log_latest_file <- paste0(name, "_\\${SLURM_ARRAY_TASK_ID}", ".Rout")
+    r_log_latest_file <- paste0(name, "_", index, ".Rout")
     file.path(r_log_latest_dir, r_log_latest_file)
   },
-  r_log_specific_file = function(ensure_dir = TRUE){
+  r_log_specific_file = function(ensure_dir = TRUE, index){
     r_log_fun <- task_env$config$r_logs
     r_log_dir <- r_log_fun(normalizePath("."))
 
     if (isTRUE(ensure_dir)){
       ensure_exists(r_log_dir)
     }
-    r_log_latest_file <- paste0("\\${SLURM_ARRAY_TASK_ID}_", name, ".Rout")
-    r_log_specific_file <- paste0("\\${SLURM_ARRAY_JOB_ID}_", r_log_latest_file)
+    r_log_latest_file <- paste0(name, "_", index, ".Rout")
+    r_log_specific_file <- paste0("\\${SLURM_JOB_ID}_", r_log_latest_file)
     file.path(r_log_dir, r_log_specific_file)
   }
   )
