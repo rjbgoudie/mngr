@@ -18,7 +18,7 @@ task_find_id <- function(name, exists = task_exists(name)){
   if (exists){
     which(name == names(task_env$tasklist))
   } else {
-    message("does not exist")
+    message("Task ", name, " does not exist")
   }
 }
 
