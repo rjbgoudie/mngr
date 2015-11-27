@@ -1,8 +1,8 @@
 slurm_sand_r_job <- substitute({
   id <- task_find_id(name, exists = TRUE)
-  jp <- task_env$tasklist[[id]]$jobid_prereqs()
-  jp <- if (!is.null(jp) && length(jp) > 0){
-    paste0("--dependency=afterok:", paste(jp, collapse = ","), " ")
+  dependency <- task_env$tasklist[[id]]$jobid_prereqs()
+  dependency <- if (!is.null(dependency) && length(dependency) > 0){
+    paste0("--dependency=afterok:", paste(dependency, collapse = ","), " ")
   } else {
     ""
   }
@@ -22,7 +22,8 @@ slurm_sand_r_job <- substitute({
            " MNGR_RLOGLATESTFILE=", r_log_latest_path,
            " sbatch -J ", name,
            " --array=1-", array,
-           " --parsable ", jp,
+           " --parsable ",
+           dependency,
            " --output=", slurm_log_path,
            " ", getOption("mngr_cluster_path"), "/mngr_slurm_submit.sand",
            "\n")
@@ -35,9 +36,9 @@ slurm_sand_r_job <- substitute({
 
 slurm_tesla_r_job <- substitute({
   id <- task_find_id(name, exists = TRUE)
-  jp <- task_env$tasklist[[id]]$jobid_prereqs()
-  jp <- if (!is.null(jp) && length(jp) > 0){
-    paste0("--dependency=afterok:", paste(jp, collapse = ","), " ")
+  dependency <- task_env$tasklist[[id]]$jobid_prereqs()
+  dependency <- if (!is.null(dependency) && length(dependency) > 0){
+    paste0("--dependency=afterok:", paste(dependency, collapse = ","), " ")
   } else {
     ""
   }
@@ -57,7 +58,8 @@ slurm_tesla_r_job <- substitute({
            " MNGR_RLOGLATESTFILE=", r_log_latest_path,
            " sbatch -J ", name,
            " --array=1-", array,
-           " --parsable ", jp,
+           " --parsable ",
+           dependency,
            " --output=", slurm_log_path,
            " ", getOption("mngr_cluster_path"), "/mngr_slurm_submit.tesla",
            "\n")
