@@ -151,13 +151,19 @@ Task <- setRefClass(
       }))
     }
   },
-  jobid_prereqs = function(){
+  jobid_prereqs = function(index){
     if (length(prereqs) > 0){
       unlist(sapply(prereqs, function(name){
         id <- task_find_id(name, exists = TRUE)
         parent <- task_env$tasklist[[id]]$jobid
-        ancestors <- task_env$tasklist[[id]]$jobid_prereqs()
-        c(parent, ancestors)
+
+        if (length(parent) == 0){
+          parent <- task_env$tasklist[[id]]$jobid_prereqs(index)
+        }
+        if (length(parent) > 1){
+          parent <- parent[index]
+        }
+        parent
       }))
     } else {
       c()
