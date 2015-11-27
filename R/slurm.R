@@ -24,6 +24,7 @@ slurm_sand_r_job <- substitute({
            " --array=1-", array,
            " --parsable ",
            dependency,
+           " --time=24:00:00",
            " --output=", slurm_log_path,
            " ", getOption("mngr_cluster_path"), "/mngr_slurm_submit.sand",
            "\n")
@@ -60,6 +61,7 @@ slurm_tesla_r_job <- substitute({
            " --array=1-", array,
            " --parsable ",
            dependency,
+           " --time=24:00:00",
            " --output=", slurm_log_path,
            " ", getOption("mngr_cluster_path"), "/mngr_slurm_submit.tesla",
            "\n")
