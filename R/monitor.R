@@ -1,12 +1,13 @@
 # Monitor slurm jobs
 #' @export
 monitor <- function(){
+  format <- "--format=\"%.8i %.15P %.30j %.7u %.2t %.10M %.6D %.20R %.10L %.10p\""
   suppressWarnings({
     suppressMessages({
       library(ductr)
       args <- commandArgs(TRUE)
       sp <- strsplit(args[[1]], " ")[[1]]
-      my_jobs <- system(paste("squeue --jobs",  sp[1]),
+      my_jobs <- system(paste("squeue", format, " --jobs",  sp[1]),
                         intern = TRUE,
                         ignore.stderr = TRUE)
       jids <- strsplit(sp[1], ",")[[1]]
