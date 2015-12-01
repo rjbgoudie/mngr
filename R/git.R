@@ -22,7 +22,12 @@ git_clone_or_pull <- function(dir = getwd()){
   }
 }
 
-git_abbrev_ref <- function(dir = getwd()){
+git_abbrev_ref <- function(dir = getwd(), base_only = TRUE){
   command <- "git rev-parse --abbrev-ref HEAD"
-  system_in_dir(command, dir = dir, intern = TRUE)
+  abbrev_ref <- system_in_dir(command, dir = dir, intern = TRUE)
+  if (base_only){
+    strsplit(abbrev_ref, "/", fixed = T)[[1]][1]
+  } else {
+    abbrev_ref
+  }
 }
