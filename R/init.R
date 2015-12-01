@@ -7,7 +7,14 @@ startup <- function(){
     cat("Working directory:", getwd(), "\n")
     cat("Job:", .job, "\n")
     if (args[[2]] != "undefined"){
-      eval.parent(parse(text = paste(".arm <- ", args[[2]])))
+      eval.parent(parse(text = paste0(".task <- \"", args[[2]], "\"")))
+    }
+    else {
+      eval.parent(parse(text = paste(".task <- \"default\"")))
+    }
+    cat("Task:", .task, "\n")
+    if (args[[3]] != "undefined"){
+      eval.parent(parse(text = paste(".arm <- ", args[[3]])))
     }
     else {
       eval.parent(parse(text = paste(".arm <- 1")))
@@ -25,7 +32,8 @@ startup <- function(){
   }
   mngrfile <- find_mngrfile(getwd())
   source(mngrfile)
-  arm <- task_env$arms[.arm, , drop = FALSE]
+  arms <- arms_all(.task, include_shared = TRUE)
+  arm <- arms[[.arm]]
   attach(arm)
   cat("Arm values\n")
   unlist(arm)

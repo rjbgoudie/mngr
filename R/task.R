@@ -52,7 +52,7 @@ task_create <- function(name, action){
   # this is inefficient for newly created
   id <- task_find_id(name, exists = TRUE)
   task_env$tasklist[[id]]$add_action(action)
-  invisible(TRUE)
+  invisible(a)
 }
 
 #' Set up task dependencies
@@ -78,7 +78,7 @@ task_create <- function(name, action){
   }
   id_a <- task_find_id(a, exists = TRUE)
   task_env$tasklist[[id_a]]$add_prereqs(b)
-  invisible(TRUE)
+  invisible(a)
 }
 
 #' @export Task
@@ -91,7 +91,8 @@ Task <- setRefClass(
     already_invoked = "logical",
     jobid = "character",
     prereq_jobids = "character",
-    r_log_path = "character"
+    r_log_path = "character",
+    shared = "list"
   ),
   methods = list(
     initialize = function(...){
@@ -234,6 +235,15 @@ Task <- setRefClass(
 
     slurm_log_file <- paste0("%A.%a-", name, ".txt")
     file.path(slurm_log_dir, slurm_log_file)
+  },
+  add_shared = function(new_shared){
+    shared <<- c(shared, new_shared)
+  },
+  getShared = function(){
+    shared
+  },
+  any_shared = function(){
+    length(shared) > 0
   }
   )
 )
