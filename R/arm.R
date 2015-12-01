@@ -34,9 +34,21 @@ arm_name <- function(){
   arm <- arm[o]
   arm_values <- sapply(arm, paste, collapse = ",")
   arm_names <- names(arm)
-  paste(.arm,
-        paste(arm_names, arm_values, sep = ":",  collapse = ";"),
-        sep = "-")
+  paste(arm_names, arm_values, sep = ":",  collapse = ";")
+}
+
+arm_name_shared <- function(){
+  arms <- arms_all(.task, include_shared = TRUE)
+
+  arm <- arms[[.arm]]
+  o <- order(names(arm))
+  arm <- arm[o]
+  grid <- expand.grid(arm)
+  apply(grid, 1, function(arm){
+    arm_values <- sapply(arm, paste, collapse = ",")
+    arm_names <- names(arm)
+    paste(arm_names, arm_values, sep = ":",  collapse = ";")
+  })
 }
 
 #' @export
@@ -45,4 +57,13 @@ arm_name <- function(){
   task_id <- task_find_id(taskname, exists = TRUE)
   task_env$tasklist[[task_id]]$add_shared(share)
   invisible(taskname)
+}
+
+#' @export
+read_rds_shared <- function(...){
+  all_arms <- arm_name_shared()
+  all_paths <- sapply(all_arms, function(x){
+    rds_file(..., arm = x)
+  })
+  lapply(all_paths, readRDS)
 }

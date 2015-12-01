@@ -6,7 +6,7 @@
 #' @param extension file extension
 #' @export
 file_path <- function(file,
-                      arm = T,
+                      arm = arm_name(),
                       directory = "etc",
                       extension = ""){
   output_fun <- task_env$config$output
@@ -14,9 +14,7 @@ file_path <- function(file,
   pre <- output_fun(run_dir())
 
   directory <- ifelse(directory == "", "", paste0(directory, "/"))
-  if (isTRUE(arm)){
-    arm <- paste0(arm_name(), "/")
-  }
+  arm <- paste0(arm, "/")
   extension <- ifelse(extension == "", "", paste0(".", extension))
 
   path_directory <- paste0(pre, directory, arm)
