@@ -14,11 +14,15 @@ arms_all <- function(task, include_shared = TRUE){
   share <- task_obj$getShared()
   which_arms_shared <- names(arms_list) %in% share
   arms_unshared <- do.call("expand.grid", arms_list[!which_arms_shared])
-  arms_unshared <- apply(arms_unshared, 1, as.list)
+  arms_unshared <- lapply(seq_len(nrow(arms_unshared)), function(i){
+    as.list(arms_unshared[i, ])
+  })
   if (include_shared){
-    arms_shared <- arms_list[which_arms_shared]
-    values <- lapply(seq_along(arms_unshared), function(x) arms_shared)
-    arms_unshared <- mapply(append, arms_unshared, values, SIMPLIFY = FALSE)
+    if (sum(which_arms_shared) > 0){
+      arms_shared <- arms_list[which_arms_shared]
+      values <- lapply(seq_along(arms_unshared), function(x) arms_shared)
+      arms_unshared <- mapply(append, arms_unshared, values, SIMPLIFY = FALSE)
+    }
     arms_unshared
   } else {
     arms_unshared
@@ -32,9 +36,9 @@ arm_name <- function(){
   arm <- arms[[.arm]]
   o <- order(names(arm))
   arm <- arm[o]
-  arm_values <- sapply(arm, paste, collapse = ",")
+  arm_values <- sapply(arm, paste, collapse = "-")
   arm_names <- names(arm)
-  paste(arm_names, arm_values, sep = ":",  collapse = ";")
+  paste(arm_names, arm_values, sep = "--",  collapse = "__")
 }
 
 arm_name_shared <- function(){
@@ -47,7 +51,7 @@ arm_name_shared <- function(){
   apply(grid, 1, function(arm){
     arm_values <- sapply(arm, paste, collapse = ",")
     arm_names <- names(arm)
-    paste(arm_names, arm_values, sep = ":",  collapse = ";")
+    paste(arm_names, arm_values, sep = "--",  collapse = "__")
   })
 }
 
