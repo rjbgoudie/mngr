@@ -22,6 +22,9 @@ slurm_r_job <- function(task){
       dependency <- task_obj$jobid_prereqs(arm_index)
     }
 
+    memory <- task_obj$get_memory()
+    cores <- task_obj$get_cores()
+
     dependency <- if (!is.null(dependency) && length(dependency) > 0){
       paste0("--dependency=afterok:", paste(dependency, collapse = ","), " ")
     } else {
@@ -41,6 +44,9 @@ slurm_r_job <- function(task){
              " sbatch -J ", name_with_array,
              " --parsable ",
              dependency,
+             " --mem=", memory,
+             " --ntasks=", cores,
+             " --nodes=1",
              " --time=24:00:00",
              " --output=", slurm_log_path,
              " ", getOption("mngr_cluster_path"), "/mngr_slurm_submit.", queue,

@@ -92,7 +92,9 @@ Task <- setRefClass(
     jobid = "character",
     prereq_jobids = "character",
     r_log_path = "character",
-    shared = "list"
+    shared = "list",
+    memory = "numeric",
+    cores = "numeric"
   ),
   methods = list(
     initialize = function(...){
@@ -244,6 +246,26 @@ Task <- setRefClass(
   },
   any_shared = function(){
     length(shared) > 0
+  },
+  set_memory = function(new_memory){
+    memory <<- new_memory
+  },
+  get_memory = function(){
+    if (length(memory) > 0){
+      memory
+    } else {
+      3993
+    }
+  },
+  set_cores = function(new_cores){
+    cores <<- new_cores
+  },
+  get_cores = function(){
+    if (length(cores) > 0){
+      cores
+    } else {
+      1
+    }
   }
   )
 )
