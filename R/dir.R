@@ -1,7 +1,10 @@
 #' Check if dir is inside git work tree
 #'
+#' Uses git rev-parse to test whether the supplied directory is a git work
+#' tree
+#'
 #' @param dir A directory
-is_git_dir <- function(dir = getwd()){
+is_inside_git_work_tree <- function(dir = getwd()){
   command <- "git rev-parse --is-inside-work-tree"
   out <- NA
   out <- suppressWarnings({

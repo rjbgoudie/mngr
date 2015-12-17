@@ -31,6 +31,11 @@ find_mngrfile <- function(dir){
 #' @param name a task name
 #' @export
 run <- function(name = "default", debug = FALSE){
+  is_inside_git_work_tree <- is_inside_git_work_tree()
+  if (!is_inside_git_work_tree){
+    stop("The directory is not in a git repository")
+  }
+
   suppressWarnings({
     clean <- system("require-clean-work-dir", intern = TRUE)
   })
