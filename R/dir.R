@@ -21,7 +21,11 @@ is_inside_git_work_tree <- function(dir = getwd()){
 #' Get the toplevel git directory
 #'
 #' @param A directory
-git_toplevel_dir <- function(dir = getwd()){
+git_toplevel_dir <- function(dir = getwd(),
+                             is_inside_git_work_tree =
+                               is_inside_git_work_tree(dir)){
+  stopifnot(isTRUE(is_inside_git_work_tree))
+
   command <- "git rev-parse --show-toplevel"
   system_in_dir(command, dir = dir, intern = TRUE)
 }
@@ -43,8 +47,13 @@ is_run_dir <- function(dir = getwd()){
 #' returned.
 #'
 #' @param dir A directory
-run_git_toplevel_dir <- function(dir = getwd()){
-  git_toplevel <- git_toplevel_dir(dir = dir)
+run_git_toplevel_dir <- function(dir = getwd(),
+                                 is_inside_git_work_tree =
+                                   is_inside_git_work_tree(dir)){
+  stopifnot(isTRUE(is_inside_git_work_tree))
+
+  git_toplevel <- git_toplevel_dir(dir = dir,
+                                   is_inside_git_work_tree = TRUE)
   if (!is_run_dir(dir)){
     git_abbrev_ref <- git_abbrev_ref(dir = dir, base_only = TRUE)
     home <- Sys.getenv("HOME")
@@ -62,9 +71,12 @@ run_git_toplevel_dir <- function(dir = getwd()){
 #' directory is returned.
 #'
 #' @param dir A directory
-run_dir <- function(dir = getwd()){
-  git_toplevel <- git_toplevel_dir(dir = dir)
+run_dir <- function(dir = getwd(),
+                    is_inside_git_work_tree = is_inside_git_work_tree(dir)){
+  stopifnot(isTRUE(is_inside_git_work_tree))
+
+  git_toplevel <- git_toplevel_dir(dir = dir, is_inside_git_work_tree = TRUE)
   dir_from_git_toplevel <- rel_path(dir = dir, start = git_toplevel)
-  run_git_toplevel_dir <- run_git_toplevel_dir()
+  run_git_toplevel_dir <- run_git_toplevel_dir(is_inside_git_work_tree = TRUE)
   paste0(run_git_toplevel_dir, "/", dir_from_git_toplevel)
 }

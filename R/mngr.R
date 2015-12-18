@@ -45,7 +45,7 @@ run <- function(name = "default", debug = FALSE){
   git_clone_or_pull()
 
   jobids <- c()
-  with_dir(run_dir(), {
+  with_dir(run_dir(is_inside_git_work_tree = TRUE), {
     mngrfile <- find_mngrfile(getwd())
     source(mngrfile)
 
