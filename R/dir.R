@@ -20,7 +20,9 @@ is_inside_git_work_tree <- function(dir = getwd()){
 
 #' Get the toplevel git directory
 #'
-#' @param A directory
+#' @param dir A directory
+#' @param is_inside_git_work_tree Logical, if TRUE no test for whether dir is
+#' inside a git work tree
 git_toplevel_dir <- function(dir = getwd(),
                              is_inside_git_work_tree =
                                is_inside_git_work_tree(dir)){
@@ -31,6 +33,8 @@ git_toplevel_dir <- function(dir = getwd(),
 }
 
 #' Check if dir is a run directory
+#'
+#' Simply checks whether dir start with $HOME/run
 #'
 #' @param dir A directory
 is_run_dir <- function(dir = getwd()){
@@ -47,6 +51,8 @@ is_run_dir <- function(dir = getwd()){
 #' returned.
 #'
 #' @param dir A directory
+#' @param is_inside_git_work_tree Logical, if TRUE no test for whether dir is
+#' inside a git work tree
 run_git_toplevel_dir <- function(dir = getwd(),
                                  is_inside_git_work_tree =
                                    is_inside_git_work_tree(dir)){
@@ -71,6 +77,8 @@ run_git_toplevel_dir <- function(dir = getwd(),
 #' directory is returned.
 #'
 #' @param dir A directory
+#' @param is_inside_git_work_tree Logical, if TRUE no test for whether dir is
+#' inside a git work tree
 run_dir <- function(dir = getwd(),
                     is_inside_git_work_tree = is_inside_git_work_tree(dir)){
   stopifnot(isTRUE(is_inside_git_work_tree))
