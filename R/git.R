@@ -9,8 +9,7 @@ git_clone_or_pull <- function(dir = getwd()){
   repo <- git2r::repository(path = dir)
   git_head_name <- head(repo)@name
 
-  run_git_toplevel_dir <- run_git_toplevel_dir(dir = dir,
-                                               is_inside_git_work_tree = TRUE)
+  run_git_toplevel_dir <- run_git_toplevel_dir(dir = dir, check = TRUE)
   dir.create(run_git_toplevel_dir, recursive = TRUE, showWarnings = FALSE)
 
   run_is_inside_git_work_tree <- is_inside_git_work_tree(run_git_toplevel_dir)
@@ -20,7 +19,7 @@ git_clone_or_pull <- function(dir = getwd()){
     git2r::checkout(run_repo, branch = git_head_name)
     message("Pull complete")
   } else {
-    git2r::clone(url = git_toplevel_dir(is_inside_git_work_tree = TRUE),
+    git2r::clone(url = git_toplevel_dir(check = FALSE),
                  local_path = run_git_toplevel_dir)
     run_repo <- git2r::repository(path = run_git_toplevel_dir)
     git2r::checkout(run_repo, branch = git_head_name)
