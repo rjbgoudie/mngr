@@ -117,18 +117,21 @@ Task <- setRefClass(
         debug_msg(debug, "Invoking ", name)
 
         state_file(ensure_dir = TRUE, create = TRUE)
-        action_class <- sapply(actions, class)
-        lapply(actions[action_class == "{"], eval.parent)
-        lapply(actions[action_class == "call"], function(action){
-          eval(action)(.self)
-        })
-        lapply(actions[action_class == "function"], function(action){
-          action(.self)
-        })
+        enqueue(name)
       } else {
         debug_msg(debug, name, " not needed")
       }
     }
+  },
+  execute = function(debug = FALSE){
+    action_class <- sapply(actions, class)
+    lapply(actions[action_class == "{"], eval.parent)
+    lapply(actions[action_class == "call"], function(action){
+      eval(action)(.self)
+    })
+    lapply(actions[action_class == "function"], function(action){
+      action(.self)
+    })
   },
   invoke_prereqs = function(debug = FALSE){
     if (length(prereqs) > 0){

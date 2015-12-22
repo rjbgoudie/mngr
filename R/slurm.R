@@ -65,3 +65,16 @@ slurm_add_jobids <- function(new){
   jobids <- c(slurm_env$jobids, new)
   assign("jobids", jobids, envir = slurm_env)
 }
+
+enqueue <- function(name){
+  queue <- c(slurm_env$queue, list(name))
+  assign("queue", queue, env = slurm_env)
+}
+
+dequeue <- function(debug = FALSE){
+  queue <- slurm_env$queue
+  lapply(queue, function(name){
+    id <- task_find_id(name, exists = TRUE)
+    task_env$tasklist[[id]]$execute(debug = debug)
+  })
+}

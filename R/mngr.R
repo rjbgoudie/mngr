@@ -57,6 +57,7 @@ run <- function(name = "default", debug = FALSE){
     id <- task_find_id(name)
     lapply(task_env$post_run_list, eval)
     task_env$tasklist[[id]]$invoke(debug = debug)
+    dequeue(debug = debug)
 
     # this is the wrong place for this
     r_log_fun <- task_env$config$r_logs
