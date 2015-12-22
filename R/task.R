@@ -109,15 +109,12 @@ Task <- setRefClass(
   invoke = function(debug = FALSE) {
     if (!already_invoked){
       already_invoked <<- TRUE
-      if (debug){
-        message("Invoking prerequisties for ", name)
-      }
+      debug_msg(debug, "Invoking prerequisties for ", name)
+
       invoke_prereqs(debug = debug)
       if (.self$needed(debug = debug)){
 
-        if (debug){
-          message("Invoking ", name)
-        }
+        debug_msg(debug, "Invoking ", name)
 
         state_file(ensure_dir = TRUE, create = TRUE)
         action_class <- sapply(actions, class)
@@ -129,17 +126,14 @@ Task <- setRefClass(
           action(.self)
         })
       } else {
-        if (debug){
-          message(name, " not needed")
-        }
+        debug_msg(debug, name, " not needed")
       }
     }
   },
   invoke_prereqs = function(debug = FALSE){
     if (length(prereqs) > 0){
-      if (debug){
-        message("Running prereqs for ", name)
-      }
+      debug_msg(debug, "Running prereqs for ", name)
+
       sapply(prereqs, function(name){
         id <- task_find_id(name, exists = TRUE)
         task_env$tasklist[[id]]$invoke(debug = debug)
@@ -186,13 +180,12 @@ Task <- setRefClass(
       prerequisite_run_more_recently ||
       build_all
 
-    if (debug){
-      message("Needed status for ", name, " is ", out, ". ",
+    debug_msg(debug,
+              "Needed status for ", name, " is ", out, ". ",
               "never_run: ", never_run, ". ",
               "prerequistite_run_more_recently: ", prerequisite_run_more_recently,
               ". ",
               "build_all: ", build_all, ".")
-    }
     out
   },
   timestamp = function(){
@@ -297,14 +290,13 @@ RTask <- setRefClass(
       prerequisite_run_more_recently ||
       build_all
 
-    if (debug){
-      message("Needed status for ", name, " is ", out, ". ",
+    debug_msg(debug,
+              "Needed status for ", name, " is ", out, ". ",
               "never_run: ", never_run, ". ",
               "edited_since_last_run: ", edited_since_last_run, ". ",
               "prerequistite_run_more_recently: ", prerequisite_run_more_recently,
               ". ",
               "build_all: ", build_all, ".")
-    }
     out
   },
   timestamp = function(){

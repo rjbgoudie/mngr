@@ -126,3 +126,9 @@ cat_df <- function(x){
 }
 
 `%||%` <- function(a,  b) if (is.null(a)) b else a
+
+debug_msg <- function(debug, ...){
+  if (debug){
+    message(...)
+  }
+}
