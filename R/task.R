@@ -108,57 +108,57 @@ Task <- setRefClass(
       actions <<- c(list(actions_new), actions)
     }
   },
-    prereq_taskarm_names = function(arm_index){
-      out <- character(0)
-      if (length(prereqs) > 0){
-        out <- unlist(sapply(prereqs, function(name){
-          id <- task_find_id(name)
-          if (!is.null(id)){
-            parent_task <- task_env$tasklist[[id]]
+  prereq_taskarm_names = function(arm_index){
+    out <- character(0)
+    if (length(prereqs) > 0){
+      out <- unlist(sapply(prereqs, function(name){
+        id <- task_find_id(name)
+        if (!is.null(id)){
+          parent_task <- task_env$tasklist[[id]]
 
-            if (length(parent_task$actions) == 0){
-              parent <- task_env$tasklist[[id]]$prereq_taskarm_names(arm_index)
-            }
-            if (length(parent_task$actions) > 0){
-              parent <- paste(parent_task$name, arm_index, sep = "_")
-            }
-            parent
-          } else {
-            character(0)
+          if (length(parent_task$actions) == 0){
+            parent <- task_env$tasklist[[id]]$prereq_taskarm_names(arm_index)
           }
-        }))
-      }
-      out
-    },
-    invoke = function(debug = FALSE) {
-      if (!already_invoked){
-        already_invoked <<- TRUE
-        debug_msg(debug, "Invoking prerequisties for ", name)
-
-        invoke_prereqs(debug = debug)
-
-        debug_msg(debug, "Prereqs for done for ", name)
-
-        arms_count <- 1
-        if (length(actions) > 0){
-          arms <- arms_all(name, include_shared = FALSE)
-          arms_count <- length(arms)
+          if (length(parent_task$actions) > 0){
+            parent <- paste(parent_task$name, arm_index, sep = "_")
+          }
+          parent
+        } else {
+          character(0)
         }
+      }))
+    }
+    out
+  },
+  invoke = function(debug = FALSE) {
+    if (!already_invoked){
+      already_invoked <<- TRUE
+      debug_msg(debug, "Invoking prerequisties for ", name)
 
-        for (arm_index in seq_len(arms_count)){
-          name_with_array <- paste(name, arm_index, sep = "_")
+      invoke_prereqs(debug = debug)
 
-          taskarm_create(task_name = name,
-                         taskarm_name = name_with_array,
-                         arm_index = arm_index,
-                         prereqs = prereq_taskarm_names(arm_index),
-                         actions = actions,
-                         properties = properties,
-                         custom_timestamp = custom_timestamp)
-          id <- taskarm_find_id(name_with_array, exists = TRUE)
-          taskarm_env$taskarmlist[[id]]$invoke(debug = debug)
-        }
+      debug_msg(debug, "Prereqs for done for ", name)
+
+      arms_count <- 1
+      if (length(actions) > 0){
+        arms <- arms_all(name, include_shared = FALSE)
+        arms_count <- length(arms)
       }
+
+      for (arm_index in seq_len(arms_count)){
+        name_with_array <- paste(name, arm_index, sep = "_")
+
+        taskarm_create(task_name = name,
+                       taskarm_name = name_with_array,
+                       arm_index = arm_index,
+                       prereqs = prereq_taskarm_names(arm_index),
+                       actions = actions,
+                       properties = properties,
+                       custom_timestamp = custom_timestamp)
+        id <- taskarm_find_id(name_with_array, exists = TRUE)
+        taskarm_env$taskarmlist[[id]]$invoke(debug = debug)
+      }
+    }
   },
   invoke_prereqs = function(debug = FALSE){
   if (length(prereqs) > 0){
