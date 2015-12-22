@@ -91,7 +91,6 @@ Task <- setRefClass(
     already_invoked = "logical",
     jobid = "character",
     prereq_jobids = "character",
-    r_log_path = "character",
     shared = "list",
     memory = "numeric",
     cores = "numeric"
