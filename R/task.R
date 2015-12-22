@@ -207,8 +207,7 @@ RTask <- setRefClass(
   contains = "Task",
   methods = list(
     needed = function(debug = FALSE){
-    state_file <- state_file(ensure_dir = FALSE, create = FALSE)
-    never_run <- !file.exists(state_file)
+    out <- callSuper(debug = debug)
 
     command <- paste0("git log -1 --format=%cD ", name, ".R")
     r_file_date <- system(command, intern = TRUE)
@@ -219,46 +218,18 @@ RTask <- setRefClass(
       last_run_date <- file.info(state_file)$mtime
       edited_since_last_run <- last_edited_date > last_run_date
     }
-    prerequisite_run_more_recently <- FALSE
-    most_recent_prereq <- FALSE
-    if (length(prereqs) > 0){
-      prereqs_timestamp <- lapply(prereqs, function(name){
-        id <- task_find_id(name, exists = TRUE)
-        task_env$tasklist[[id]]$timestamp()
-      })
-      most_recent_prereq <- do.call("max", prereqs_timestamp)
-    }
-    prerequisite_run_more_recently <- most_recent_prereq > timestamp()
 
-    # flesh this out
-    build_all <- FALSE
-    out <- never_run ||
-      edited_since_last_run ||
-      prerequisite_run_more_recently ||
-      build_all
-
-    debug_msg(debug,
-              "Needed status for ", name, " is ", out, ". ",
-              "never_run: ", never_run, ". ",
-              "edited_since_last_run: ", edited_since_last_run, ". ",
-              "prerequistite_run_more_recently: ", prerequisite_run_more_recently,
-              ". ",
-              "build_all: ", build_all, ".")
-    out
+    out || edited_since_last_run
   },
   timestamp = function(){
+    timestamp <- callSuper()
+
     command <- paste0("git log -1 --format=%cD ", name, ".R")
     r_file_date <- system(command, intern = TRUE)
     r_file_date <- strptime(r_file_date, format = "%a,  %d %b %Y %T %z")
 
-    state_file <- state_file(ensure_dir = FALSE, create = FALSE)
-
-    timestamp <- r_file_date
-    if (file.exists(state_file)){
-      state_file_date <- file.info(state_file)$mtime
-      if (state_file_date > r_file_date){
-        timestamp <- state_file_date
-      }
+    if (r_file_date > timestamp){
+      timestamp <- r_file_date
     }
     timestamp
   }
