@@ -108,13 +108,13 @@ Task <- setRefClass(
     jobid <<- x
   },
   invoke = function(debug = FALSE) {
-    if (!isTRUE(already_invoked)){
+    if (!already_invoked){
       already_invoked <<- TRUE
       if (debug){
         message("Invoking prerequisties for ", name)
       }
       invoke_prereqs(debug = debug)
-      if (isTRUE(.self$needed(debug = debug))){
+      if (.self$needed(debug = debug)){
 
         if (debug){
           message("Invoking ", name)
@@ -210,12 +210,12 @@ Task <- setRefClass(
     state_fun <- task_env$config$state
     state_dir <- state_fun(normalizePath("."))
 
-    if (isTRUE(ensure_dir)){
+    if (ensure_dir){
       ensure_exists(state_dir)
     }
     state_file <- paste0(state_dir, "/", name)
 
-    if (isTRUE(create)){
+    if (create){
       file.create(state_file)
     } else {
       state_file
@@ -225,7 +225,7 @@ Task <- setRefClass(
     slurm_log_fun <- task_env$config$slurm_logs
     slurm_log_dir <- slurm_log_fun(normalizePath("."))
 
-    if (isTRUE(ensure_dir)){
+    if (ensure_dir){
       ensure_exists(slurm_log_dir)
     }
 
@@ -330,7 +330,7 @@ RTask <- setRefClass(
     r_log_dir <- r_log_fun(normalizePath("."))
     r_log_latest_dir <- paste0(r_log_dir, "-latest/")
 
-    if (isTRUE(ensure_dir)){
+    if (ensure_dir){
       ensure_exists(r_log_latest_dir)
     }
     r_log_latest_file <- paste0(name, "_", index, ".Rout")
@@ -340,7 +340,7 @@ RTask <- setRefClass(
     r_log_fun <- task_env$config$r_logs
     r_log_dir <- r_log_fun(normalizePath("."))
 
-    if (isTRUE(ensure_dir)){
+    if (ensure_dir){
       ensure_exists(r_log_dir)
     }
     r_log_latest_file <- paste0(name, "_", index, ".Rout")
