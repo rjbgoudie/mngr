@@ -58,5 +58,10 @@ slurm_r_job <- function(task){
     jobids <- c(jobids, jobid)
   }
   task$set_jobid(jobids)
-  jobids
+  slurm_add_jobids(jobids)
+}
+
+slurm_add_jobids <- function(new){
+  jobids <- c(slurm_env$jobids, new)
+  assign("jobids", jobids, envir = slurm_env)
 }

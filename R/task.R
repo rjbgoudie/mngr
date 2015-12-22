@@ -90,7 +90,6 @@ Task <- setRefClass(
     actions = "list",
     already_invoked = "logical",
     jobid = "character",
-    prereq_jobids = "character",
     shared = "list",
     memory = "numeric",
     cores = "numeric"
@@ -135,17 +134,16 @@ Task <- setRefClass(
         }
       }
     }
-    unique(c(prereq_jobids, jobid))
   },
   invoke_prereqs = function(debug = FALSE){
     if (length(prereqs) > 0){
       if (debug){
         message("Running prereqs for ", name)
       }
-      prereq_jobids <<- unlist(lapply(prereqs, function(name){
+      sapply(prereqs, function(name){
         id <- task_find_id(name, exists = TRUE)
         task_env$tasklist[[id]]$invoke(debug = debug)
-      }))
+      })
     }
   },
   jobid_prereqs = function(index){

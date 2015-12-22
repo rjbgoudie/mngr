@@ -5,6 +5,7 @@
 NULL
 
 task_env <- new.env()
+slurm_env <- new.env()
 
 #' Configure mngr
 #'
@@ -44,7 +45,7 @@ run <- function(name = "default", debug = FALSE){
   }
   git_clone_or_pull()
 
-  jobids <- c()
+  assign("jobids", c(), envir = slurm_env)
   with_dir(run_dir(check = TRUE), {
     mngrfile <- find_mngrfile(getwd())
     source(mngrfile)
@@ -55,8 +56,7 @@ run <- function(name = "default", debug = FALSE){
     }
     id <- task_find_id(name)
     lapply(task_env$post_run_list, eval)
-    new_jobid <- task_env$tasklist[[id]]$invoke(debug = debug)
-    jobids <- c(jobids, new_jobid)
+    task_env$tasklist[[id]]$invoke(debug = debug)
 
     # this is the wrong place for this
     r_log_fun <- task_env$config$r_logs
@@ -64,6 +64,7 @@ run <- function(name = "default", debug = FALSE){
 
     invisible(TRUE)
   })
+  jobids <- slurm_env$jobids
   jobids_length <- length(jobids)
   if (jobids_length > 0){
     message(jobids_length, " jobs submitted")
