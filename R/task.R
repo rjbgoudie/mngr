@@ -89,10 +89,8 @@ Task <- setRefClass(
     prereqs = "character", # a list of task names
     actions = "list",
     already_invoked = "logical",
-    jobid = "character",
     shared = "list",
-    memory = "numeric",
-    cores = "numeric"
+    properties = "list"
   ),
   methods = list(
     initialize = function(...){
@@ -102,9 +100,6 @@ Task <- setRefClass(
   enhance = function(prereqs_new = NULL, actions_new = NULL){
     prereqs <<- c(prereqs_new, prereqs)
     actions <<- c(list(actions_new), actions)
-  },
-  set_jobid = function(x){
-    jobid <<- x
   },
   invoke = function(debug = FALSE) {
     if (!already_invoked){
@@ -117,21 +112,15 @@ Task <- setRefClass(
         debug_msg(debug, "Invoking ", name)
 
         state_file(ensure_dir = TRUE, create = TRUE)
-        enqueue(name)
+        job_create(name = name,
+                   actions = actions,
+                   prereqs = prereqs,
+                   shared = shared,
+                   properties = properties)
       } else {
         debug_msg(debug, name, " not needed")
       }
     }
-  },
-  execute = function(debug = FALSE){
-    action_class <- sapply(actions, class)
-    lapply(actions[action_class == "{"], eval.parent)
-    lapply(actions[action_class == "call"], function(action){
-      eval(action)(.self)
-    })
-    lapply(actions[action_class == "function"], function(action){
-      action(.self)
-    })
   },
   invoke_prereqs = function(debug = FALSE){
     if (length(prereqs) > 0){
@@ -141,24 +130,6 @@ Task <- setRefClass(
         id <- task_find_id(name, exists = TRUE)
         task_env$tasklist[[id]]$invoke(debug = debug)
       })
-    }
-  },
-  jobid_prereqs = function(index){
-    if (length(prereqs) > 0){
-      unlist(sapply(prereqs, function(name){
-        id <- task_find_id(name, exists = TRUE)
-        parent <- task_env$tasklist[[id]]$jobid
-
-        if (length(parent) == 0){
-          parent <- task_env$tasklist[[id]]$jobid_prereqs(index)
-        }
-        if (length(parent) > 1){
-          parent <- parent[index]
-        }
-        parent
-      }))
-    } else {
-      c()
     }
   },
   needed = function(debug = FALSE){
@@ -215,45 +186,18 @@ Task <- setRefClass(
       state_file
     }
   },
-  slurm_file = function(ensure_dir = TRUE){
-    slurm_log_fun <- task_env$config$slurm_logs
-    slurm_log_dir <- slurm_log_fun(normalizePath("."))
-
-    if (ensure_dir){
-      ensure_exists(slurm_log_dir)
-    }
-
-    slurm_log_file <- paste0("%A.%a-", name, ".txt")
-    file.path(slurm_log_dir, slurm_log_file)
-  },
   add_shared = function(new_shared){
     shared <<- c(shared, new_shared)
   },
   getShared = function(){
     shared
   },
-  any_shared = function(){
-    length(shared) > 0
-  },
-  set_memory = function(new_memory){
-    memory <<- new_memory
-  },
-  get_memory = function(){
-    if (length(memory) > 0){
-      memory
-    } else {
-      3993
-    }
-  },
-  set_cores = function(new_cores){
-    cores <<- new_cores
-  },
-  get_cores = function(){
-    if (length(cores) > 0){
-      cores
-    } else {
-      1
-    }
+  set_properties = function(...){
+    new <- list(...)
+    to_replace <- match(names(new), names(properties))
+    properties[to_replace] <<- new
+    to_add <- !(names(new) %in% names(properties))
+    properties <<- c(properties, new[to_add])
   }
   )
 )
@@ -317,28 +261,6 @@ RTask <- setRefClass(
       }
     }
     timestamp
-  },
-  r_log_latest_file = function(ensure_dir = TRUE, index){
-    r_log_fun <- task_env$config$r_logs
-    r_log_dir <- r_log_fun(normalizePath("."))
-    r_log_latest_dir <- paste0(r_log_dir, "-latest/")
-
-    if (ensure_dir){
-      ensure_exists(r_log_latest_dir)
-    }
-    r_log_latest_file <- paste0(name, "_", index, ".Rout")
-    file.path(r_log_latest_dir, r_log_latest_file)
-  },
-  r_log_specific_file = function(ensure_dir = TRUE, index){
-    r_log_fun <- task_env$config$r_logs
-    r_log_dir <- r_log_fun(normalizePath("."))
-
-    if (ensure_dir){
-      ensure_exists(r_log_dir)
-    }
-    r_log_latest_file <- paste0(name, "_", index, ".Rout")
-    r_log_specific_file <- paste0("\\${SLURM_JOB_ID}_", r_log_latest_file)
-    file.path(r_log_dir, r_log_specific_file)
   }
   )
 )

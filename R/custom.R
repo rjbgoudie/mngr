@@ -2,7 +2,7 @@
 `%memory%` <- function(taskname, memory){
   stopifnot(inherits(taskname, "character"))
   task_id <- task_find_id(taskname, exists = TRUE)
-  task_env$tasklist[[task_id]]$set_memory(memory)
+  task_env$tasklist[[task_id]]$set_properties(memory = memory)
   invisible(taskname)
 }
 
@@ -10,6 +10,6 @@
 `%cores%` <- function(taskname, cores){
   stopifnot(inherits(taskname, "character"))
   task_id <- task_find_id(taskname, exists = TRUE)
-  task_env$tasklist[[task_id]]$set_cores(cores)
+  task_env$tasklist[[task_id]]$set_properties(cores = cores)
   invisible(taskname)
 }
