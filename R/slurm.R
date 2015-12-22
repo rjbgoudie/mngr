@@ -1,64 +1,52 @@
 slurm_r_job <- function(task){
   id <- job_find_id(task$name, exists = TRUE)
   task_obj <- job_env$joblist[[id]]
-  path <- normalizePath(paste0(task$name, ".R"))
+  path <- normalizePath(paste0(task$basename, ".R"))
 
   slurm_log_path <- task$slurm_file(ensure_dir = TRUE)
 
   queue <- task_env$config$queue %||% "sand"
 
-  arms <- arms_all(task$name, include_shared = FALSE)
-  arms_count <- length(arms)
+  # if any shared arms, then depend on all prereqs, not just the matching
+  # index
+  dependency <- task_obj$jobid_prereqs()
 
-  jobids <- c()
-  for (arm_index in seq_len(arms_count)){
-    name_with_array <- paste(task$name, arm_index, sep = "_")
+  memory <- task_obj$get_memory()
+  cores <- task_obj$get_cores()
 
-    # if any shared arms, then depend on all prereqs, not just the matching
-    # index
-    if (task_obj$any_shared()){
-      dependency <- task_obj$jobid_prereqs(TRUE)
-    } else {
-      dependency <- task_obj$jobid_prereqs(arm_index)
-    }
-
-    memory <- task_obj$get_memory()
-    cores <- task_obj$get_cores()
-
-    dependency <- if (!is.null(dependency) && length(dependency) > 0){
-      paste0("--dependency=afterok:", paste(dependency, collapse = ","), " ")
-    } else {
-      ""
-    }
-
-    r_log_specific_path <- task$r_log_specific_file(ensure_dir = TRUE, arm_index)
-    r_log_latest_path <- task$r_log_latest_file(ensure_dir = TRUE, arm_index)
-    r_log_path <<- r_log_specific_path
-
-    incant <-
-      paste0("MNGR_RFILE=", path,
-             " MNGR_RLOGFILE=", r_log_specific_path,
-             " MNGR_RLOGLATESTFILE=", r_log_latest_path,
-             " MNGR_TASKNAME=", task$name,
-             " MNGR_ARM=", arm_index,
-             " sbatch -J ", name_with_array,
-             " --parsable ",
-             dependency,
-             " --mem=", memory,
-             " --ntasks=", cores,
-             " --nodes=1",
-             " --time=24:00:00",
-             " --output=", slurm_log_path,
-             " ", getOption("mngr_cluster_path"), "/mngr_slurm_submit.", queue,
-             "\n")
-    jobid <- system(incant, intern = TRUE)
-    time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
-    message(time, " Submitted ", task$name, " (", jobid, ")")
-    cat(incant)
-    jobids <- c(jobids, jobid)
+  dependency <- if (!is.null(dependency) && length(dependency) > 0){
+    paste0("--dependency=afterok:", paste(dependency, collapse = ","), " ")
+  } else {
+    ""
   }
-  task$set_jobid(jobids)
-  slurm_add_jobids(jobids)
+
+  r_log_specific_path <- task$r_log_specific_file(ensure_dir = TRUE)
+  r_log_latest_path <- task$r_log_latest_file(ensure_dir = TRUE)
+  r_log_path <<- r_log_specific_path
+
+  incant <-
+    paste0("MNGR_RFILE=", path,
+           " MNGR_RLOGFILE=", r_log_specific_path,
+           " MNGR_RLOGLATESTFILE=", r_log_latest_path,
+           " MNGR_TASKNAME=", task$basename,
+           " MNGR_ARM=", task$arm_index,
+           " sbatch -J ", task$name,
+           " --parsable ",
+           dependency,
+           " --mem=", memory,
+           " --ntasks=", cores,
+           " --nodes=1",
+           " --time=24:00:00",
+           " --output=", slurm_log_path,
+           " ", getOption("mngr_cluster_path"), "/mngr_slurm_submit.", queue,
+           "\n")
+  jobid <- system(incant, intern = TRUE)
+  time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
+  message(time, " Submitted ", task$name, " (", jobid, ")")
+  cat(incant)
+
+  task$set_jobid(jobid)
+  slurm_add_jobids(jobid)
 }
 
 slurm_add_jobids <- function(new){
@@ -77,11 +65,12 @@ SlurmJob <- setRefClass(
   "SlurmJob",
   fields = list(
     name = "character",
+    basename = "character",
+    arm_index = "integer",
     actions = "list",
     prereqs = "character",
     jobid = "character",
     prereq_jobids = "character",
-    shared = "list",
     properties = "list"
   ),
   methods = list(
@@ -109,67 +98,56 @@ SlurmJob <- setRefClass(
   set_jobid = function(x){
     jobid <<- x
   },
-  jobid_prereqs = function(index){
+  jobid_prereqs = function(){
+    out <- c()
     if (length(prereqs) > 0){
-      unlist(sapply(prereqs, function(name){
+      out <- unlist(sapply(prereqs, function(name){
         id <- job_find_id(name)
         if (!is.null(id)){
           parent <- job_env$joblist[[id]]$jobid
-
-          if (length(parent) == 0){
-            parent <- job_env$joblist[[id]]$jobid_prereqs(index)
-          }
-          if (length(parent) > 1){
-            parent <- parent[index]
-          }
-          parent
         } else {
           c()
         }
       }))
-      } else {
-        c()
-      }
-    },
-    get_memory = function(){
-      if (length(properties$memory) > 0){
-        properties$memory
-      } else {
-        3993
-      }
-    },
-    get_cores = function(){
-      if (length(properties$cores) > 0){
-        properties$cores
-      } else {
-        1
-      }
-    },
-    r_log_latest_file = function(ensure_dir = TRUE, index){
-      r_log_fun <- task_env$config$r_logs
-      r_log_dir <- r_log_fun(normalizePath("."))
-      r_log_latest_dir <- paste0(r_log_dir, "-latest/")
-
-      if (ensure_dir){
-        ensure_exists(r_log_latest_dir)
-      }
-      r_log_latest_file <- paste0(name, "_", index, ".Rout")
-      file.path(r_log_latest_dir, r_log_latest_file)
-    },
-    r_log_specific_file = function(ensure_dir = TRUE, index){
-      r_log_fun <- task_env$config$r_logs
-      r_log_dir <- r_log_fun(normalizePath("."))
-
-      if (ensure_dir){
-        ensure_exists(r_log_dir)
-      }
-      r_log_latest_file <- paste0(name, "_", index, ".Rout")
-      r_log_specific_file <- paste0("\\${SLURM_JOB_ID}_", r_log_latest_file)
-      file.path(r_log_dir, r_log_specific_file)
-    },
-    any_shared = function(){
-      length(shared) > 0
     }
+    out
+  },
+  get_memory = function(){
+    if (length(properties$memory) > 0){
+      properties$memory
+    } else {
+      3993
+    }
+  },
+  get_cores = function(){
+    if (length(properties$cores) > 0){
+      properties$cores
+    } else {
+      1
+    }
+  },
+  r_log_latest_file = function(ensure_dir = TRUE){
+    r_log_fun <- task_env$config$r_logs
+    r_log_dir <- r_log_fun(normalizePath("."))
+    r_log_latest_dir <- paste0(r_log_dir, "-latest/")
+
+    if (ensure_dir){
+      ensure_exists(r_log_latest_dir)
+    }
+    r_log_latest_file <- paste0(name, ".Rout")
+    file.path(r_log_latest_dir, r_log_latest_file)
+  },
+  r_log_specific_file = function(ensure_dir = TRUE){
+    r_log_fun <- task_env$config$r_logs
+    r_log_dir <- r_log_fun(normalizePath("."))
+
+    if (ensure_dir){
+      ensure_exists(r_log_dir)
+    }
+    r_log_latest_file <- paste0(name, ".Rout")
+    r_log_specific_file <- paste0("\\${SLURM_JOB_ID}_", r_log_latest_file)
+    file.path(r_log_dir, r_log_specific_file)
+  }
   )
 )
 

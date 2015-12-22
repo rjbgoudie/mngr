@@ -14,7 +14,14 @@ rfiles <- function(){
 #' @param name task name
 #' @param action a set of expressions
 rfile_create <- function(name, action){
-  task <- RTask(name = name)
+  task <- Task(name = name)
+
+  r_file_date <- function(name){
+    command <- paste0("git log -1 --format=%cD ", name, ".R")
+    r_file_date <- system(command, intern = TRUE)
+    strptime(r_file_date, format = "%a,  %d %b %Y %T %z")
+  }
+  task$set_custom_timestamp(r_file_date)
   task_env$tasklist <- c(list(task), task_env$tasklist)
   names(task_env$tasklist)[1] <- name
 }

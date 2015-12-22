@@ -5,6 +5,7 @@
 NULL
 
 task_env <- new.env()
+taskarm_env <- new.env()
 slurm_env <- new.env()
 job_env <- new.env()
 
