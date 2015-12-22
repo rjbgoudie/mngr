@@ -51,7 +51,7 @@ task_create <- function(name, action){
   }
   # this is inefficient for newly created
   id <- task_find_id(name, exists = TRUE)
-  task_env$tasklist[[id]]$add_action(action)
+  task_env$tasklist[[id]]$enhance(action_new = action)
   invisible(a)
 }
 
@@ -77,7 +77,7 @@ task_create <- function(name, action){
     task_create(b, {})
   }
   id_a <- task_find_id(a, exists = TRUE)
-  task_env$tasklist[[id_a]]$add_prereqs(b)
+  task_env$tasklist[[id_a]]$enhance(prereqs_new = b)
   invisible(a)
 }
 
@@ -100,11 +100,9 @@ Task <- setRefClass(
     already_invoked <<- FALSE
     initFields(...)
   },
-  add_prereqs = function(x) {
-    prereqs <<- c(x, prereqs)
-  },
-  add_action = function(x) {
-    actions <<- c(list(x), actions)
+  enhance = function(prereqs_new = NULL, actions_new = NULL){
+    prereqs <<- c(prereqs_new, prereqs)
+    actions <<- c(list(actions_new), actions)
   },
   set_jobid = function(x){
     jobid <<- x
