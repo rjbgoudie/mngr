@@ -27,6 +27,13 @@ git_clone_or_pull <- function(dir = getwd()){
   }
 }
 
+#' Abbreviated name for HEAD commit in git repository
+#'
+#' Uses git rev-parse --abbrev-ref to get the branch name when appropriate
+#'
+#' @param dir A directory
+#' @param base_only Logical, should only the first part of a foo/bar branch
+#' name be returned
 git_abbrev_ref <- function(dir = getwd(), base_only = TRUE){
   command <- "git rev-parse --abbrev-ref HEAD"
   abbrev_ref <- system_in_dir(command, dir = dir, intern = TRUE)

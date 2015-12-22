@@ -93,6 +93,9 @@ ensure_exists <- function(dir){
 
 #' Evalutate system command in directory
 #'
+#' Wrapper around system to execute a system command in a different
+#' directory to the current one
+#'
 #' @param command a system call
 #' @param dir path to directory
 #' @param ... passed to system()
