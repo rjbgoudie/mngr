@@ -100,9 +100,6 @@ Task <- setRefClass(
     already_invoked <<- FALSE
     initFields(...)
   },
-  set_name = function(x) {
-    name <<- x
-  },
   add_prereqs = function(x) {
     prereqs <<- c(x, prereqs)
   },
