@@ -103,4 +103,26 @@ system_in_dir <- function(command, dir, ...){
   system(command = paste0("(cd ", dir, "; ", command, ")"), ...)
 }
 
+#' Get the final line of a file
+#'
+#' Internally uses system calls to tail and sed
+#'
+#' @param path Path to the file
+file_last_line <- function(path){
+  system(paste("tail -n 1 ", path, " | sed '2d' $1"), intern = TRUE)
+}
+
+#' Concatenate and print a data.frame
+#'
+#' Output a data.frame object using cat. This is useful so that raw bash
+#' calls (for colours etc) are printed correctly
+#'
+#' @param x A data frame
+cat_df <- function(x){
+  for (i in seq_len(nrow(x))){
+    cat(as.matrix(x)[i, ])
+    cat("\n")
+  }
+}
+
 `%||%` <- function(a,  b) if (is.null(a)) b else a

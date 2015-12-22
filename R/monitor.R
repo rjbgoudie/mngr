@@ -1,60 +1,63 @@
-# Monitor slurm jobs
+#' Monitor Slurm jobs
+#'
+#' This function is designed to work from the command line. It accepts two
+#' arguments. The first is a comma-separated list of Slurm Job IDs. The second
+#' is a path to R log directory.
+#'
 #' @export
 monitor <- function(){
-  format <- "--format=\"%.8i %.15P %.30j %.7u %.2t %.10M %.6D %.20R %.10L %.10p\""
   suppressWarnings({
     suppressMessages({
-      library(ductr)
       args <- commandArgs(TRUE)
-      sp <- strsplit(args[[1]], " ")[[1]]
-      my_jobs <- system(paste("squeue", format, " --jobs",  sp[1]),
-                        intern = TRUE,
-                        ignore.stderr = TRUE)
-      jids <- strsplit(sp[1], ",")[[1]]
-      paths <- Sys.glob(paste0(sp[2], "/", jids, "*.Rout"))
-      basenames <- basename(paths)
-      warnings <- unname(sapply(paths, ductr:::count_rout_warnings))
-      errors <- unname(sapply(paths, ductr:::count_rout_errors))
-      warnings <- ifelse(warnings == "1",
-                         paste0("\x1b[43m\x1b[30m", warnings, "w\x1b[0m"),
-                         "")
-      errors <- ifelse(errors == "1", paste0("\x1b[41m", errors, "e\x1b[0m"), "")
-      last_line <- function(x){
-        system(paste("tail -n 1 ", x, " | sed '2d' $1"), intern = TRUE)
-      }
-      final <- unname(sapply(paths, last_line))
+      no_jobs <- args[[1]] == "No"
+      args_split <- strsplit(args[[1]], " ")[[1]]
 
-      if (length(attributes(my_jobs)$status) == 0){
-        jobs <- read.table(text = my_jobs, header = TRUE)
-      } else {
-        jobs <- "Job does not exist"
-      }
+      jids <- strsplit(args_split[1], ",")[[1]]
+      logs_dir <- args_split[2]
+      logs_paths <- Sys.glob(paste0(logs_dir, "/", jids, "*.Rout"))
+
+      squeue_status <- squeue(jobs = jids)
+      rout_df <- parse_rout_files(logs_paths)
     })
   })
 
-  if (args[[1]] != "No"){
-    out <- data.frame(names = basenames, w = warnings, e = errors, f = final)
-    if (!is.null(jobs) && is.data.frame(jobs) && nrow(jobs) > 0){
+  have_squeue_status <-
+    !is.null(squeue_status) &&
+     is.data.frame(squeue_status) &&
+     nrow(squeue_status) > 0
+  have_rout <- !is.null(rout_df) && nrow(rout_df) > 0
+
+  if (!no_jobs){
+    if (have_squeue_status){
       cat("Queue status:\n")
-      print(jobs)
+      print(squeue_status)
       cat("\n")
     }
 
-    if (!is.null(out) && nrow(out) > 0){
+    if (have_rout){
       cat("Rout status:\n")
-      for (i in seq_len(nrow(out))){
-        cat(as.matrix(out)[i, ])
-        cat("\n")
-      }
-    }
-
-    if (sum(errors == "1") > 0){
-      cat("\u274c  Note errors")
-    }
-    if (sum(warnings == "1") > 0){
-      cat("\u274c  Note warnings")
+      cat_df(rout_df)
     }
   } else {
     message("No jobs submitted")
+  }
+}
+
+#' Wrapper around Slurm's squeue function
+#'
+#' @param jobs Vector of Slurm Job IDs
+#' @param format A format string for Slurm's squeue function
+squeue <- function(jobs,
+                   format =
+                     "%.8i %.15P %.30j %.7u %.2t %.10M %.6D %.20R %.10L %.10p"){
+  jobs <- paste0(jobs, collapse = ",")
+  format <- paste0("--format=\"", format, "\"")
+  squeue_output <- system(paste("squeue", format, " --jobs", jobs),
+                          intern = TRUE,
+                          ignore.stderr = TRUE)
+  if (length(attributes(squeue_output)$status) == 0){
+    read.table(text = squeue_output, header = TRUE)
+  } else {
+    "Job does not exist"
   }
 }
