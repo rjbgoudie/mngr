@@ -51,7 +51,7 @@ task_create <- function(name, action){
   }
   # this is inefficient for newly created
   id <- task_find_id(name, exists = TRUE)
-  task_env$tasklist[[id]]$enhance(action_new = action)
+  task_env$tasklist[[id]]$enhance(actions_new = action)
   invisible(a)
 }
 
