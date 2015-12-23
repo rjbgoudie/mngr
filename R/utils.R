@@ -132,3 +132,7 @@ debug_msg <- function(debug, ...){
     message(...)
   }
 }
+
+not.null <- function(x){
+  !is.null(x)
+}

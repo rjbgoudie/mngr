@@ -99,7 +99,14 @@ Task <- setRefClass(
     already_invoked <<- FALSE
     custom_timestamp <<- list()
     actions <<- list()
+    prereqs <<- character(0)
     initFields(...)
+  },
+  is_dummy = function(){
+    length(actions) == 0
+  },
+  taskarm_name = function(arm_index){
+    paste(name, arm_index, sep = "_")
   },
   enhance = function(prereqs_new = NULL, actions_new = NULL){
     if (!is.null(prereqs_new)){
@@ -110,25 +117,17 @@ Task <- setRefClass(
     }
   },
   prereq_taskarm_names = function(arm_index){
-    out <- character(0)
-    if (length(prereqs) > 0){
-      out <- unlist(lapply(prereqs, function(name){
-        parent_task <- task_get(name)
+    prereq_tasks <- sapply(prereqs, task_get)
+    prereq_tasks <- Filter(not.null, prereq_tasks)
 
-        if (!is.null(parent_task)){
-          is_dummy_task <- length(parent_task$actions) == 0
-          if (is_dummy_task){
-            parent <- parent_task$prereq_taskarm_names(arm_index)
-          } else {
-            parent <- paste(parent_task$name, arm_index, sep = "_")
-          }
-          parent
-        } else {
-          character(0)
-        }
-      }))
-    }
-    out
+    out <- lapply(prereq_tasks, function(prereq_task){
+      if (prereq_task$is_dummy()){
+        prereq_task$prereq_taskarm_names(arm_index)
+      } else {
+        prereq_task$taskarm_name(arm_index)
+      }
+    })
+    as.character(unlist(out))
   },
   invoke = function(debug = FALSE) {
     if (!already_invoked){
