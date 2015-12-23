@@ -34,5 +34,9 @@ parse_rout_files <- function(paths){
 run_time <- function(path){
   final <- file_last_line(path)
   m <- regexec("1;42;30m([^h]+)h ([^m]+)m ([^s]+)s", final)
-  as.numeric(regmatches(final, m)[[1]][2:4])
+  if (m[[1]][1] != -1){
+    as.numeric(regmatches(final, m)[[1]][2:4])
+  } else {
+    NULL
+  }
 }
