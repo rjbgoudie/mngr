@@ -140,9 +140,15 @@ SlurmJob <- setRefClass(
   predict_run_time = function(){
     last <- last_run_time()
     if (!is.null(last)){
-      last <- 2 * last
-      last[2] <- last[2] + 5
-      args <- c("%02d:%02d:%02d", as.list(last))
+      multiply <- 2
+      extra <- 10
+      overflow3 <- (multiply * last[3]) %/% 60
+      last[3] <- (multiply * last[3]) %% 60
+      overflow2 <- (multiply * last[2] + overflow3 + extra) %/% 60
+      last[2] <- (multiply * last[2] + overflow3 + extra) %% 60
+      overflow1 <- (multiply * last[1] + overflow2) %/% 60
+      last[1] <- (multiply * last[1] + overflow2) %% 60
+      args <- c("%d:%02d:%02d", as.list(last))
       do.call("sprintf", args)
     } else {
       "24:00:00"
