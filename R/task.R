@@ -117,14 +117,12 @@ Task <- setRefClass(
     }
   },
   prereq_taskarm_names = function(arm_index){
-    prereq_tasks <- sapply(prereqs, task_get)
-    prereq_tasks <- Filter(not.null, prereq_tasks)
-
-    out <- lapply(prereq_tasks, function(prereq_task){
-      if (prereq_task$is_dummy()){
-        prereq_task$prereq_taskarm_names(arm_index)
+    tasks <- prereq_tasks()
+    out <- lapply(tasks, function(task){
+      if (task$is_dummy()){
+        task$prereq_taskarm_names(arm_index)
       } else {
-        prereq_task$taskarm_name(arm_index)
+        task$taskarm_name(arm_index)
       }
     })
     as.character(unlist(out))
@@ -144,27 +142,27 @@ Task <- setRefClass(
 
       debug_msg(debug, "Building ", arms_count, " arms for ", name)
       for (arm_index in seq_len(arms_count)){
+        this_taskarm_name <- taskarm_name(arm_index)
         taskarm_create(task_name = name,
-                       taskarm_name = taskarm_name(arm_index),
+                       taskarm_name = this_taskarm_name,
                        arm_index = arm_index,
                        prereqs = prereq_taskarm_names(arm_index),
                        actions = actions,
                        properties = properties,
                        custom_timestamp = custom_timestamp)
-        id <- taskarm_find_id(name_with_array, exists = TRUE)
+        id <- taskarm_find_id(this_taskarm_name, exists = TRUE)
         taskarm_env$taskarmlist[[id]]$invoke(debug = debug)
       }
     }
   },
+  prereq_tasks = function(){
+    prereq_tasks <- sapply(prereqs, task_get)
+    Filter(not.null, prereq_tasks)
+  },
   invoke_prereqs = function(debug = FALSE){
-    if (length(prereqs) > 0){
-      debug_msg(debug, "Running prereqs for ", name)
-
-      sapply(prereqs, function(name){
-        task_obj <- task_get(name, exists = TRUE)
-        task_obj$invoke(debug = debug)
-      })
-    }
+    debug_msg(debug, "Running prereqs for ", name)
+    tasks <- prereq_tasks()
+    lapply(tasks, function(task) task$invoke(debug = debug))
   },
   add_shared = function(new_shared){
     shared <<- c(shared, new_shared)
