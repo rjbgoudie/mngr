@@ -10,15 +10,16 @@ task_exists <- function(name){
   task_exists
 }
 
-#' Find task id
+#' Get a task
 #'
 #' @param name task name
 #' @param exists does the task exist?
-task_find_id <- function(name, exists = task_exists(name)){
+task_get <- function(name, exists = task_exists(name)){
   if (exists){
-    which(name == names(task_env$tasklist))
+    id <- which(name == names(task_env$tasklist))
+    task_env$tasklist[[id]]
   } else {
-    message("Task ", name, " does not exist")
+    NULL
   }
 }
 
@@ -50,8 +51,8 @@ task_create <- function(name, action){
     task_create(name, action)
   }
   # this is inefficient for newly created
-  id <- task_find_id(name, exists = TRUE)
-  task_env$tasklist[[id]]$enhance(actions_new = action)
+  task_obj <- task_get(name, exists = TRUE)
+  task_obj$enhance(actions_new = action)
   invisible(a)
 }
 
@@ -76,8 +77,8 @@ task_create <- function(name, action){
   if (!task_exists(b)){
     task_create(b, {})
   }
-  id_a <- task_find_id(a, exists = TRUE)
-  task_env$tasklist[[id_a]]$enhance(prereqs_new = b)
+  task_a <- task_get(a, exists = TRUE)
+  task_a$enhance(prereqs_new = b)
   invisible(a)
 }
 
@@ -108,83 +109,82 @@ Task <- setRefClass(
       actions <<- c(list(actions_new), actions)
     }
   },
-    prereq_taskarm_names = function(arm_index){
-      out <- character(0)
-      if (length(prereqs) > 0){
-        out <- unlist(lapply(prereqs, function(name){
-          id <- task_find_id(name)
-          if (!is.null(id)){
-            parent_task <- task_env$tasklist[[id]]
+  prereq_taskarm_names = function(arm_index){
+    out <- character(0)
+    if (length(prereqs) > 0){
+      out <- unlist(lapply(prereqs, function(name){
+        parent_task <- task_get(name)
 
-            if (length(parent_task$actions) == 0){
-              parent <- task_env$tasklist[[id]]$prereq_taskarm_names(arm_index)
-            }
-            if (length(parent_task$actions) > 0){
-              parent <- paste(parent_task$name, arm_index, sep = "_")
-            }
-            parent
-          } else {
-            character(0)
+        if (!is.null(parent_task)){
+          if (length(parent_task$actions) == 0){
+            parent <- parent_task$prereq_taskarm_names(arm_index)
           }
-        }))
-      }
-      out
-    },
-    invoke = function(debug = FALSE) {
-      if (!already_invoked){
-        already_invoked <<- TRUE
-        debug_msg(debug, "Invoking prerequisties for ", name)
-
-        invoke_prereqs(debug = debug)
-
-        debug_msg(debug, "Prereqs for done for ", name)
-
-        arms_count <- 1
-        if (length(actions) > 0){
-          arms <- arms_all(name, include_shared = FALSE)
-          arms_count <- length(arms)
+          if (length(parent_task$actions) > 0){
+            parent <- paste(parent_task$name, arm_index, sep = "_")
+          }
+          parent
+        } else {
+          character(0)
         }
+      }))
+    }
+    out
+  },
+  invoke = function(debug = FALSE) {
+    if (!already_invoked){
+      already_invoked <<- TRUE
+      debug_msg(debug, "Invoking prerequisties for ", name)
 
-        for (arm_index in seq_len(arms_count)){
-          name_with_array <- paste(name, arm_index, sep = "_")
+      invoke_prereqs(debug = debug)
 
-          taskarm_create(task_name = name,
-                         taskarm_name = name_with_array,
-                         arm_index = arm_index,
-                         prereqs = prereq_taskarm_names(arm_index),
-                         actions = actions,
-                         properties = properties,
-                         custom_timestamp = custom_timestamp)
-          id <- taskarm_find_id(name_with_array, exists = TRUE)
-          taskarm_env$taskarmlist[[id]]$invoke(debug = debug)
-        }
+      debug_msg(debug, "Prereqs for done for ", name)
+
+      arms_count <- 1
+      if (length(actions) > 0){
+        arms <- arms_all(name, include_shared = FALSE)
+        arms_count <- length(arms)
       }
+
+      for (arm_index in seq_len(arms_count)){
+        name_with_array <- paste(name, arm_index, sep = "_")
+
+        taskarm_create(task_name = name,
+                       taskarm_name = name_with_array,
+                       arm_index = arm_index,
+                       prereqs = prereq_taskarm_names(arm_index),
+                       actions = actions,
+                       properties = properties,
+                       custom_timestamp = custom_timestamp)
+        id <- taskarm_find_id(name_with_array, exists = TRUE)
+        taskarm_env$taskarmlist[[id]]$invoke(debug = debug)
+      }
+    }
   },
   invoke_prereqs = function(debug = FALSE){
-  if (length(prereqs) > 0){
-    debug_msg(debug, "Running prereqs for ", name)
+    if (length(prereqs) > 0){
+      debug_msg(debug, "Running prereqs for ", name)
 
-    sapply(prereqs, function(name){
-      id <- task_find_id(name, exists = TRUE)
-      task_env$tasklist[[id]]$invoke(debug = debug)
-    })
+      sapply(prereqs, function(name){
+        task_obj <- task_get(name, exists = TRUE)
+        task_obj$invoke(debug = debug)
+      })
+    }
+  },
+  add_shared = function(new_shared){
+    shared <<- c(shared, new_shared)
+  },
+  getShared = function(){
+    shared
+  },
+  set_properties = function(...){
+    new <- list(...)
+    to_replace <- match(names(new), names(properties))
+    properties[to_replace] <<- new
+    to_add <- !(names(new) %in% names(properties))
+    properties <<- c(properties, new[to_add])
+  },
+  set_custom_timestamp = function(f){
+    custom_timestamp[[1]] <<- f
   }
-},
-add_shared = function(new_shared){
-  shared <<- c(shared, new_shared)
-},
-getShared = function(){
-  shared
-},
-set_properties = function(...){
-  new <- list(...)
-  to_replace <- match(names(new), names(properties))
-  properties[to_replace] <<- new
-  to_add <- !(names(new) %in% names(properties))
-  properties <<- c(properties, new[to_add])
-},
-set_custom_timestamp = function(f){
-  custom_timestamp[[1]] <<- f
-}
-)
+  )
 )

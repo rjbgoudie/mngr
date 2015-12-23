@@ -41,7 +41,7 @@ rfile <- function(name){
   } else {
     rfile_create(name, {})
   }
-  id <- task_find_id(name, exists = TRUE)
-  task_env$tasklist[[id]]$enhance(actions_new = action)
+  task_obj <- task_get(name, exists = TRUE)
+  task_obj$enhance(actions_new = action)
   invisible(TRUE)
 }

@@ -56,9 +56,9 @@ run <- function(name = "default", debug = FALSE){
     if (is.name(expr)){
       name <- as.character(expr)
     }
-    id <- task_find_id(name)
+    task_obj <- task_get(name)
     lapply(task_env$post_run_list, eval)
-    task_env$tasklist[[id]]$invoke(debug = debug)
+    task_obj$invoke(debug = debug)
     run_jobs(debug = debug)
 
     # this is the wrong place for this

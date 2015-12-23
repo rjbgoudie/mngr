@@ -7,8 +7,7 @@ arms_factorial <- function(...){
 }
 
 arms_all <- function(task, include_shared = TRUE){
-  id <- task_find_id(task, exists = TRUE)
-  task_obj <- task_env$tasklist[[id]]
+  task_obj <- task_get(task, exists = TRUE)
 
   arms_list <- task_env$arms_list
   share <- task_obj$getShared()
@@ -58,8 +57,8 @@ arm_name_shared <- function(){
 #' @export
 `%share%` <- function(taskname, share){
   stopifnot(inherits(taskname, "character"))
-  task_id <- task_find_id(taskname, exists = TRUE)
-  task_env$tasklist[[task_id]]$add_shared(share)
+  task_obj <- task_get(taskname, exists = TRUE)
+  task_obj$add_shared(share)
   invisible(taskname)
 }
 
