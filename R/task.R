@@ -193,8 +193,7 @@ Task <- setRefClass(
                        actions = actions,
                        properties = properties,
                        custom_timestamp = custom_timestamp)
-        id <- taskarm_find_id(this_taskarm_name, exists = TRUE)
-        taskarm_env$taskarmlist[[id]]$invoke(debug = debug)
+        taskarm_get(this_taskarm_name, exists = TRUE)$invoke(debug = debug)
       }
     }
   },

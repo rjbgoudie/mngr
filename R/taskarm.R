@@ -39,8 +39,7 @@ TaskArm <- setRefClass(
     most_recent_prereq <- FALSE
     if (length(prereqs) > 0){
       prereqs_timestamp <- lapply(prereqs, function(taskarm_name){
-        id <- taskarm_find_id(taskarm_name, exists = TRUE)
-        taskarm_env$taskarmlist[[id]]$timestamp()
+        taskarm_get(taskarm_name, exists = TRUE)$timestamp()
       })
       most_recent_prereq <- do.call("max", prereqs_timestamp)
     }
@@ -108,15 +107,16 @@ taskarm_exists <- function(name){
   taskarm_exists
 }
 
-#' Find taskarm id
+#' Get a taskarm
 #'
 #' @param name taskarm name
 #' @param exists does the taskarm exist?
-taskarm_find_id <- function(name, exists = taskarm_exists(name)){
+taskarm_get <- function(name, exists = taskarm_exists(name)){
   if (exists){
-    which(name == names(taskarm_env$taskarmlist))
+    id <- which(name == names(taskarm_env$taskarmlist))
+    taskarm_env$taskarmlist[[id]]
   } else {
-    message("Taskarm ", name, " does not exist")
+    NULL
   }
 }
 
