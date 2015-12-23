@@ -20,6 +20,8 @@ slurm_r_job <- function(task){
     ""
   }
 
+  run_time <- task_obj$predict_run_time()
+
   r_log_specific_path <- task$r_log_specific_file(ensure_dir = TRUE)
   r_log_latest_path <- task$r_log_latest_file(ensure_dir = TRUE)
   r_log_path <<- r_log_specific_path
@@ -36,17 +38,18 @@ slurm_r_job <- function(task){
            " --mem=", memory,
            " --ntasks=", cores,
            " --nodes=1",
-           " --time=24:00:00",
+           " --time=", run_time,
            " --output=", slurm_log_path,
            " ", getOption("mngr_cluster_path"), "/mngr_slurm_submit.", queue,
            "\n")
   jobid <- system(incant, intern = TRUE)
   time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
-  message(time, " Submitted ", task$name, " (", jobid, ")")
-  ## cat(incant)
+  message(time, " Submitted ", task$name, " (", jobid, ")",
+          " Run time prediction ", paste(run_time, collapse = ":"))
+## cat(incant)
 
-  task$set_jobid(jobid)
-  slurm_add_jobids(jobid)
+task$set_jobid(jobid)
+slurm_add_jobids(jobid)
 }
 
 slurm_add_jobids <- function(new){
@@ -124,6 +127,25 @@ SlurmJob <- setRefClass(
       properties$cores
     } else {
       1
+    }
+  },
+  last_run_time = function(){
+    path <- r_log_latest_file(ensure_dir = FALSE)
+    if (file.exists(path)){
+      run_time(path)
+    } else {
+      NULL
+    }
+  },
+  predict_run_time = function(){
+    last <- last_run_time()
+    if (!is.null(last)){
+      last <- 2 * last
+      last[2] <- last[2] + 5
+      args <- c("%02d:%02d:%02d", as.list(last))
+      do.call("sprintf", args)
+    } else {
+      "24:00:00"
     }
   },
   r_log_latest_file = function(ensure_dir = TRUE){
