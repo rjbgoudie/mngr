@@ -138,17 +138,15 @@ Task <- setRefClass(
   arm = function(arm_index, include_shared = TRUE){
     arms(include_shared = include_shared)[[arm_index]]
   },
-  which_arms_like_me = function(this_arm){
-    out <- sapply(arms(), function(prereq_arm){
-      # http://stackoverflow.com/a/12958463
-      comparable_arm_names <-
-        names(prereq_arm)[names(prereq_arm) %in% names(this_arm)]
-      zz <- all(sapply(comparable_arm_names, function(z){
-        length(intersect(prereq_arm[[z]], this_arm[[z]])) > 0
-      }))
-      zz
+  which_arms = function(to_match){
+    arm_indicators <- sapply(arms(), function(arm){
+      comparable_arm_names <- names(arm)[names(arm) %in% names(to_match)]
+      are_equal <- sapply(comparable_arm_names, function(x){
+        length(intersect(arm[[x]], to_match[[x]])) > 0
+      })
+      all(are_equal)
     })
-    which(out)
+    which(arm_indicators)
   },
   prereq_taskarm_names = function(arm_index,
                                   arm_values = arm(arm_index = arm_index,
@@ -159,7 +157,7 @@ Task <- setRefClass(
       if (task$is_dummy()){
         task$prereq_taskarm_names(arm_index, arm_values = arm_values)
       } else {
-        prereq_arms <- task$which_arms_like_me(arm_values)
+        prereq_arms <- task$which_arms(arm_values)
         lapply(prereq_arms, function(arm_index){
           task$taskarm_name(arm_index)
         })
