@@ -43,7 +43,7 @@ slurm_r_job <- function(task){
   jobid <- system(incant, intern = TRUE)
   time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
   message(time, " Submitted ", task$name, " (", jobid, ")")
-  cat(incant)
+  ## cat(incant)
 
   task$set_jobid(jobid)
   slurm_add_jobids(jobid)
