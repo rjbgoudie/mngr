@@ -132,11 +132,9 @@ Task <- setRefClass(
   invoke = function(debug = FALSE) {
     if (!already_invoked){
       already_invoked <<- TRUE
+
       debug_msg(debug, "Invoking prerequisties for ", name)
-
       invoke_prereqs(debug = debug)
-
-      debug_msg(debug, "Prereqs for done for ", name)
 
       arms_count <- 1
       if (length(actions) > 0){
@@ -144,11 +142,10 @@ Task <- setRefClass(
         arms_count <- length(arms)
       }
 
+      debug_msg(debug, "Building ", arms_count, " arms for ", name)
       for (arm_index in seq_len(arms_count)){
-        name_with_array <- paste(name, arm_index, sep = "_")
-
         taskarm_create(task_name = name,
-                       taskarm_name = name_with_array,
+                       taskarm_name = taskarm_name(arm_index),
                        arm_index = arm_index,
                        prereqs = prereq_taskarm_names(arm_index),
                        actions = actions,
