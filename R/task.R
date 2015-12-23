@@ -116,10 +116,10 @@ Task <- setRefClass(
         parent_task <- task_get(name)
 
         if (!is.null(parent_task)){
-          if (length(parent_task$actions) == 0){
+          is_dummy_task <- length(parent_task$actions) == 0
+          if (is_dummy_task){
             parent <- parent_task$prereq_taskarm_names(arm_index)
-          }
-          if (length(parent_task$actions) > 0){
+          } else {
             parent <- paste(parent_task$name, arm_index, sep = "_")
           }
           parent
