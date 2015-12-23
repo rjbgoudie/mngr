@@ -8,24 +8,7 @@ arms_factorial <- function(...){
 
 arms_all <- function(task, include_shared = TRUE){
   task_obj <- task_get(task, exists = TRUE)
-
-  arms_list <- task_env$arms_list
-  share <- task_obj$getShared()
-  which_arms_shared <- names(arms_list) %in% share
-  arms_unshared <- do.call("expand.grid", arms_list[!which_arms_shared])
-  arms_unshared <- lapply(seq_len(nrow(arms_unshared)), function(i){
-    as.list(arms_unshared[i,, drop = FALSE])
-  })
-  if (include_shared){
-    if (sum(which_arms_shared) > 0){
-      arms_shared <- arms_list[which_arms_shared]
-      values <- lapply(seq_along(arms_unshared), function(x) arms_shared)
-      arms_unshared <- mapply(append, arms_unshared, values, SIMPLIFY = FALSE)
-    }
-    arms_unshared
-  } else {
-    arms_unshared
-  }
+  task_obj$arms(include_shared = include_shared)
 }
 
 #' Unique name for arm

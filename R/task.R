@@ -116,13 +116,53 @@ Task <- setRefClass(
       actions <<- c(list(actions_new), actions)
     }
   },
-  prereq_taskarm_names = function(arm_index, debug = FALSE){
+  arms = function(include_shared = TRUE){
+    arms_list <- task_env$arms_list
+    share <- getShared()
+    which_arms_shared <- names(arms_list) %in% share
+    arms_unshared <- do.call("expand.grid", arms_list[!which_arms_shared])
+    arms_unshared <- lapply(seq_len(nrow(arms_unshared)), function(i){
+      as.list(arms_unshared[i,, drop = FALSE])
+    })
+    if (include_shared){
+      if (sum(which_arms_shared) > 0){
+        arms_shared <- arms_list[which_arms_shared]
+        values <- lapply(seq_along(arms_unshared), function(x) arms_shared)
+        arms_unshared <- mapply(append, arms_unshared, values, SIMPLIFY = FALSE)
+      }
+      arms_unshared
+    } else {
+      arms_unshared
+    }
+  },
+  arm = function(arm_index, include_shared = TRUE){
+    arms(include_shared = include_shared)[[arm_index]]
+  },
+  which_arms_like_me = function(this_arm){
+    out <- sapply(arms(), function(prereq_arm){
+      # http://stackoverflow.com/a/12958463
+      comparable_arm_names <-
+        names(prereq_arm)[names(prereq_arm) %in% names(this_arm)]
+      zz <- all(sapply(comparable_arm_names, function(z){
+        length(intersect(prereq_arm[[z]], this_arm[[z]])) > 0
+      }))
+      zz
+    })
+    which(out)
+  },
+  prereq_taskarm_names = function(arm_index,
+                                  arm_values = arm(arm_index = arm_index,
+                                                   include_shared = TRUE),
+                                  debug = FALSE){
     tasks <- prereq_tasks()
     out <- lapply(tasks, function(task){
       if (task$is_dummy()){
-        task$prereq_taskarm_names(arm_index)
+        task$prereq_taskarm_names(arm_index, arm_values = arm_values)
       } else {
-        task$taskarm_name(arm_index)
+        prereq_arms <- task$which_arms_like_me(arm_values)
+        lapply(prereq_arms, function(arm_index){
+          task$taskarm_name(arm_index)
+        })
       }
     })
     out <- as.character(unlist(out))
@@ -141,7 +181,7 @@ Task <- setRefClass(
 
       arms_count <- 1
       if (length(actions) > 0){
-        arms <- arms_all(name, include_shared = FALSE)
+        arms <- arms(include_shared = FALSE)
         arms_count <- length(arms)
       }
 
