@@ -111,7 +111,7 @@ Task <- setRefClass(
     prereq_taskarm_names = function(arm_index){
       out <- character(0)
       if (length(prereqs) > 0){
-        out <- unlist(sapply(prereqs, function(name){
+        out <- unlist(lapply(prereqs, function(name){
           id <- task_find_id(name)
           if (!is.null(id)){
             parent_task <- task_env$tasklist[[id]]
