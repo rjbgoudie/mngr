@@ -116,7 +116,7 @@ Task <- setRefClass(
       actions <<- c(list(actions_new), actions)
     }
   },
-  prereq_taskarm_names = function(arm_index){
+  prereq_taskarm_names = function(arm_index, debug = FALSE){
     tasks <- prereq_tasks()
     out <- lapply(tasks, function(task){
       if (task$is_dummy()){
@@ -125,7 +125,12 @@ Task <- setRefClass(
         task$taskarm_name(arm_index)
       }
     })
-    as.character(unlist(out))
+    out <- as.character(unlist(out))
+    debug_msg(debug,
+              "Prereqs_taskarms for ", name,
+              " arm_index ", arm_index,
+              " are: ", paste(out, collapse = ","))
+    out
   },
   invoke = function(debug = FALSE) {
     if (!already_invoked){
@@ -146,7 +151,7 @@ Task <- setRefClass(
         taskarm_create(task_name = name,
                        taskarm_name = this_taskarm_name,
                        arm_index = arm_index,
-                       prereqs = prereq_taskarm_names(arm_index),
+                       prereqs = prereq_taskarm_names(arm_index, debug = debug),
                        actions = actions,
                        properties = properties,
                        custom_timestamp = custom_timestamp)
