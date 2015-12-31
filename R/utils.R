@@ -109,7 +109,17 @@ system_in_dir <- function(command, dir, ...){
 #'
 #' @param path Path to the file
 file_last_line <- function(path){
-  system(paste("tail -n 1 ", path, " | sed '2d' $1"), intern = TRUE)
+  out <- system(paste("tail -n 1 ", path, " | sed '2d' $1"), intern = TRUE)
+  # if the last line is very long, R splits it into pieces
+  out <- paste(out, collapse = "")
+
+  is_multiline <- grepl("\r", out, fixed = TRUE)
+  if (is_multiline){
+    pieces <- strsplit(out, "\r", fixed = T)[[1]]
+    tail(pieces, 1)
+  } else {
+    out
+  }
 }
 
 #' Concatenate and print a data.frame
