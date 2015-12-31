@@ -26,7 +26,12 @@ find_mngrfile <- function(dir){
   if (file.exists(path)){
     path
   } else {
-    stop("Can't find Mngrfile")
+    path <- file.path(dir, "../", "Mngrfile.R")
+    if (file.exists(path)){
+      path
+    } else {
+      stop("Can't find Mngrfile")
+    }
   }
 }
 
