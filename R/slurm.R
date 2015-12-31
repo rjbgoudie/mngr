@@ -151,7 +151,7 @@ SlurmJob <- setRefClass(
       args <- c("%d:%02d:%02d", as.list(last))
       do.call("sprintf", args)
     } else {
-      "24:00:00"
+      "48:00:00"
     }
   },
   r_log_latest_file = function(ensure_dir = TRUE){
