@@ -38,6 +38,22 @@ pdf_file <- function(...){
   file_path(..., directory = "plots", extension = "pdf")
 }
 
+#' path to tiff file
+#'
+#' @param ... passsed to file_path
+#' @export
+tiff_file <- function(...){
+  file_path(..., directory = "plots", extension = "tiff")
+}
+
+#' path to png file
+#'
+#' @param ... passsed to file_path
+#' @export
+png_file <- function(...){
+  file_path(..., directory = "plots", extension = "png")
+}
+
 #' save file
 #' @param file file name
 #' @param ... passed to default save method
