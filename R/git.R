@@ -6,7 +6,7 @@ git_clone_or_pull <- function(dir = getwd()){
   if (!dir_is_inside_git_work_tree){
     stop("Directory is not a git directory")
   }
-  repo <- git2r::repository(path = dir)
+  repo <- git2r::repository(path = dir, discover = TRUE)
   git_head_name <- head(repo)@name
 
   run_git_toplevel_dir <- run_git_toplevel_dir(dir = dir, check = TRUE)
