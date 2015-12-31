@@ -61,3 +61,19 @@ squeue <- function(jobs,
     "Job does not exist"
   }
 }
+
+#' @export
+latest_logs <- function(){
+  with_dir(run_dir(check = TRUE), {
+    mngrfile <- find_mngrfile(getwd())
+    source(mngrfile)
+    r_log_fun <- task_env$config$r_logs
+    r_log_dir <- r_log_fun(normalizePath("."))
+    r_log_latest_dir <- paste0(r_log_dir, "-latest/")
+
+    r_log_latest_file <- "*.Rout"
+    logs_paths <- Sys.glob(file.path(r_log_latest_dir, r_log_latest_file))
+    rout_df <- parse_rout_files(logs_paths)
+    cat_df(rout_df)
+  })
+}
