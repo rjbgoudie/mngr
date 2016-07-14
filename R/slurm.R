@@ -119,7 +119,7 @@ SlurmJob <- setRefClass(
     if (length(properties$memory) > 0){
       properties$memory
     } else {
-      3993
+      3840 #3993
     }
   },
   get_cores = function(){
