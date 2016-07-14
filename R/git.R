@@ -43,3 +43,14 @@ git_abbrev_ref <- function(dir = getwd(), base_only = TRUE){
     abbrev_ref
   }
 }
+
+#' Short SHA for HEAD commit in git repository
+#'
+#' Uses git rev-parse
+#'
+#' @param dir A directory
+#' @param length Number of characters
+git_short_sha <- function(dir = getwd(), length = 4){
+  command <- paste0("git rev-parse --short=", length, " HEAD")
+  system_in_dir(command, dir = dir, intern = TRUE)
+}

@@ -32,7 +32,7 @@ slurm_r_job <- function(task){
            " MNGR_RLOGLATESTFILE=", r_log_latest_path,
            " MNGR_TASKNAME=", task$basename,
            " MNGR_ARM=", task$arm_index,
-           " sbatch -J ", task$name,
+           " sbatch -J ", task$jobname(),
            " --parsable ",
            dependency,
            " --mem=", memory,
@@ -175,6 +175,9 @@ SlurmJob <- setRefClass(
     r_log_latest_file <- paste0(name, ".Rout")
     r_log_specific_file <- paste0("\\${SLURM_JOB_ID}_", r_log_latest_file)
     file.path(r_log_dir, r_log_specific_file)
+  },
+  jobname = function(){
+    paste(name, git_short_sha(), sep = "--")
   }
   )
 )
