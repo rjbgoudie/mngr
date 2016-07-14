@@ -146,3 +146,8 @@ debug_msg <- function(debug, ...){
 not.null <- function(x){
   !is.null(x)
 }
+
+set_terminal_width <- function(){
+  width <- as.numeric(system("tput cols", intern = T))
+  options(width = width)
+}

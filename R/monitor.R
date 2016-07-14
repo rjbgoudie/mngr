@@ -6,6 +6,8 @@
 #'
 #' @export
 monitor <- function(){
+  set_terminal_width()
+
   suppressWarnings({
     suppressMessages({
       args <- commandArgs(TRUE)
