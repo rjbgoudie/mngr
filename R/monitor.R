@@ -47,14 +47,28 @@ monitor <- function(){
 
 #' Wrapper around Slurm's squeue function
 #'
-#' @param jobs Vector of Slurm Job IDs
+#' @param jobs Vector of Slurm Job IDs. NULL returns all jobs
+#' @param user Vector of usernames. NULL returns all jobs
 #' @param format A format string for Slurm's squeue function
-squeue <- function(jobs,
+squeue <- function(jobs = NULL,
+                   user = NULL,
                    format =
                      "%.8i %.15P %.30j %.7u %.2t %.10M %.6D %.20R %.10L %.10p"){
-  jobs <- paste0(jobs, collapse = ",")
+  if (!is.null(jobs)){
+    jobs <- paste0(" --jobs=", paste0(jobs, collapse = ","))
+  } else {
+    jobs <- ""
+  }
+
+  if (!is.null(user)){
+    user <- paste0(" --user=", paste0(user, collapse = ","))
+  } else {
+    user <- NULL
+  }
+
   format <- paste0("--format=\"", format, "\"")
-  squeue_output <- system(paste("squeue", format, " --jobs", jobs),
+
+  squeue_output <- system(paste("squeue", format, jobs, user),
                           intern = TRUE,
                           ignore.stderr = TRUE)
   if (length(attributes(squeue_output)$status) == 0){
@@ -78,4 +92,20 @@ latest_logs <- function(){
     rout_df <- parse_rout_files(logs_paths)
     cat_df(rout_df)
   })
+}
+
+get_jobids <- function(pattern = NULL){
+  queue <- squeue()
+  rows <- grepl(pattern, x = queue$NAME)
+  queue[rows, "JOBID"]
+}
+
+qdel <- function(jobids){
+  command <- paste("scancel", paste(jobids, collapse = " "))
+  system(command)
+}
+
+kill_pattern <- function(pattern = NULL){
+  jobids <- get_jobids(pattern)
+  qdel(jobids)
 }
