@@ -49,11 +49,12 @@ monitor <- function(){
 #'
 #' @param jobs Vector of Slurm Job IDs. NULL returns all jobs
 #' @param user Vector of usernames. NULL returns all jobs
-#' @param format A format string for Slurm's squeue function
+#' @param format A format string for Slurm's squeue function, columns must be
+#'   tab separated (because Slurm sometimes includes spaces in output)
 squeue <- function(jobs = NULL,
                    user = NULL,
                    format =
-                     "%.8i %.15P %.30j %.7u %.2t %.10M %.6D %.20R %.10L %.10p"){
+                     "%.8i\t%.15P\t%.30j\t%.7u\t%.2t\t%.10M\t%.6D\t%.20R\t%.10L\t%.10p"){
   if (!is.null(jobs)){
     jobs <- paste0(" --jobs=", paste0(jobs, collapse = ","))
   } else {
@@ -72,7 +73,7 @@ squeue <- function(jobs = NULL,
                           intern = TRUE,
                           ignore.stderr = TRUE)
   if (length(attributes(squeue_output)$status) == 0){
-    read.table(text = squeue_output, header = TRUE)
+    read.table(text = squeue_output, header = TRUE,  sep = "\t")
   } else {
     "Job does not exist"
   }
