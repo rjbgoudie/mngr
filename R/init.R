@@ -35,6 +35,7 @@ startup <- function(){
   arms <- arms_all(.task, include_shared = TRUE)
   arm <- arms[[.arm]]
   attach(arm)
-  cat("Arm values\n")
-  unlist(arm)
+  cat("\nArm values\n")
+  arm_values <- capture.output(unlist(arm))
+  cat(paste(arm_values, collapse = "\n"), "\n\n")
 }
