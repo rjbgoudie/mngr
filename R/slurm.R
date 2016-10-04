@@ -138,20 +138,24 @@ SlurmJob <- setRefClass(
     }
   },
   predict_run_time = function(){
-    last <- last_run_time()
-    if (!is.null(last)){
-      multiply <- 2
-      extra <- 10
-      overflow3 <- (multiply * last[3]) %/% 60
-      last[3] <- (multiply * last[3]) %% 60
-      overflow2 <- (multiply * last[2] + overflow3 + extra) %/% 60
-      last[2] <- (multiply * last[2] + overflow3 + extra) %% 60
-      overflow1 <- (multiply * last[1] + overflow2) %/% 60
-      last[1] <- (multiply * last[1] + overflow2) %% 60
-      args <- c("%d:%02d:%02d", as.list(last))
-      do.call("sprintf", args)
+    if (length(properties$hours) > 0){
+      sprintf("%d:00:00", properties$hours)
     } else {
-      "48:00:00"
+      last <- last_run_time()
+      if (!is.null(last)){
+        multiply <- 2
+        extra <- 10
+        overflow3 <- (multiply * last[3]) %/% 60
+        last[3] <- (multiply * last[3]) %% 60
+        overflow2 <- (multiply * last[2] + overflow3 + extra) %/% 60
+        last[2] <- (multiply * last[2] + overflow3 + extra) %% 60
+        overflow1 <- (multiply * last[1] + overflow2) %/% 60
+        last[1] <- (multiply * last[1] + overflow2) %% 60
+        args <- c("%d:%02d:%02d", as.list(last))
+        do.call("sprintf", args)
+      } else {
+        "01:00:00"
+      }
     }
   },
   r_log_latest_file = function(ensure_dir = TRUE){
