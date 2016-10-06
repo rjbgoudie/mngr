@@ -181,7 +181,7 @@ SlurmJob <- setRefClass(
     file.path(r_log_dir, r_log_specific_file)
   },
   jobname = function(){
-    paste(name, git_short_sha(), sep = "--")
+    paste(name, git_short_sha(), sep = "__")
   }
   )
 )
