@@ -106,7 +106,17 @@ Task <- setRefClass(
     length(actions) == 0
   },
   taskarm_name = function(arm_index){
-    paste(name, arm_index, sep = "_")
+    if (is_dummy()){
+      name
+    } else {
+      arm <- arms(include_shared = TRUE)[[arm_index]]
+      o <- order(names(arm))
+      arm <- arm[o]
+      arm_values <- sapply(arm, paste, collapse = "-")
+      arm_names <- names(arm)
+      arm_str <- paste(arm_names, arm_values, sep = "--",  collapse = "__")
+      paste(name, arm_str, sep = "__")
+    }
   },
   enhance = function(prereqs_new = NULL, actions_new = NULL){
     if (!is.null(prereqs_new)){
