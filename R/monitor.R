@@ -8,6 +8,8 @@
 monitor <- function(jobs = NULL, logs = NULL){
   set_terminal_width()
 
+  rout_df <- NULL
+  squeue_status <- NULL
   suppressWarnings({
     suppressMessages({
       if (is.null(jobs)){
@@ -25,7 +27,9 @@ monitor <- function(jobs = NULL, logs = NULL){
       logs_paths <- Sys.glob(paste0(logs_dir, "/", jids, "*.Rout"))
 
       squeue_status <- squeue(jobs = jids)
-      rout_df <- parse_rout_files(logs_paths)
+      if (length(logs_paths) > 0){
+        rout_df <- parse_rout_files(logs_paths)
+      }
     })
   })
 
@@ -84,7 +88,8 @@ squeue <- function(jobs = NULL,
     x <- read.table(text = squeue_output,
                     header = TRUE,
                     sep = "\t",
-                    strip.white = TRUE)
+                    strip.white = TRUE,
+                    stringsAsFactors = FALSE)
     if (nrow(x) > 0){
       colnames(x) <- tolower(colnames(x))
       x <- x %>%
