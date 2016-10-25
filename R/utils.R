@@ -129,10 +129,41 @@ file_last_line <- function(path){
 #'
 #' @param x A data frame
 cat_df <- function(x){
-  for (i in seq_len(nrow(x))){
-    cat(as.matrix(x)[i, ])
-    cat("\n")
+  # http://stackoverflow.com/a/38662876
+  ansi_regex <- "(\\x9B|\\x1B\\[)[0-?]*[ -\\/]*[@-~]"
+
+  # add colnames as a row, so that their width is accounted for
+  colnames(x) <- paste0("\033[4m", colnames(x), "\033[24m")
+  x <- rbind(colnames(x), x)
+
+  terminal_width <- get_terminal_width()
+  total_width <- 0
+  # pad out narrow columns, but account for ANSI codes, by stripping these out
+  # before calculating the widths
+  for (i in 1:ncol(x)){
+    stripped <- gsub(ansi_regex, "", x[, i], perl = TRUE)
+    nc <- nchar(stripped, type = "width")
+    width <- max(nc)
+    diff <- nc - width
+
+    total_width <- total_width + width
+    excess_width <- max(0, total_width - terminal_width + 3 + i)
+    max_width <- width - excess_width
+    too_long <- nc > max_width
+    x[too_long, i] <- paste0(substr(x[too_long, i], 1, max_width),
+                             "...",
+                             "\x1b[0m")
+    diff <- diff + excess_width
+
+    short <- diff < 0
+    blanks <- sapply(-diff[short], function(t){
+      paste0(rep(" ", times = t), collapse = "")
+    })
+    x[short, i] <- paste0(x[short, i], blanks)
+
   }
+
+  write.table(x, quote = FALSE, row.names = FALSE, col.names = FALSE)
 }
 
 `%||%` <- function(a,  b) if (is.null(a)) b else a
@@ -150,4 +181,8 @@ not.null <- function(x){
 set_terminal_width <- function(){
   width <- as.numeric(system("tput cols", intern = T))
   options(width = width)
+}
+
+get_terminal_width <- function(){
+  as.numeric(system("tput cols", intern = T))
 }
