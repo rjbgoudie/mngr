@@ -113,8 +113,8 @@ latest_logs <- function(){
 
     r_log_latest_file <- "*.Rout"
     logs_paths <- Sys.glob(file.path(r_log_latest_dir, r_log_latest_file))
-    rout_df <- parse_rout_files(logs_paths)
-    cat_df(rout_df)
+    rout_df <- parse_rout_files(logs_paths, type = "rlatest")
+    pretty_print_rout(rout_df)
   })
 }
 

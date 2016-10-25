@@ -17,7 +17,15 @@ count_rout_errors <- function(log){
 #' Parse .Rout files to a data frame
 #'
 #' @param paths Character vector of paths to Rout files
-parse_rout_files <- function(paths){
+#'
+#' A data.frame with the following columns:
+#'
+#' jid, jobname, warnings, errors, internal_run_seconds, final
+#'
+#' plus
+#'
+#' arm___xyz columns for each arm value
+parse_rout_files <- function(paths, type = "rout"){
   warnings <- unname(sapply(paths, count_rout_warnings))
   errors <- unname(sapply(paths, count_rout_errors))
   final <- unname(sapply(paths, file_last_line))
@@ -33,7 +41,7 @@ parse_rout_files <- function(paths){
                   stringsAsFactors = FALSE)
   if (nrow(x) > 0){
     x <- x %>%
-      do(parse_name(., type = "rout"))
+      do(parse_name(., type = type))
     x <- all_run_times(x)
     x$success <- success(x)
     x <- x %>%

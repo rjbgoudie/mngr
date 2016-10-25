@@ -3,7 +3,7 @@ parse_name <- function(x, type = "rout"){
   matches <- gregexpr("__", probe_text)[[1]]
   nmatches <- length(matches)
   # a valid job name has at least 2 __
-  if (nmatches > 2){
+  if (nmatches > 2 || (type == "rlatest" && nmatches > 1)){
     npieces <- nmatches + 1
     piece_names <- paste0("piece", seq_len(npieces))
 
@@ -15,6 +15,15 @@ parse_name <- function(x, type = "rout"){
         rename(jid = piece1, jobname = piece2) %>%
         mutate_at("jid", as.numeric)
       arm_pieces <- piece_names[-(1:2)]
+    } else if (type == "rlatest"){
+      x <- x %>%
+        rename(jobname = piece1)
+      arm_pieces <- piece_names[-1]
+
+      # need a unique identifier for each row, otherwie spread_ below does not
+      # work. So add a dummy. Also required for other functions that assume a
+      # jid is present
+      x$jid <- 1:nrow(x)
     } else if (type == "squeue"){
       x <- x %>%
         rename(jobname = piece1) %>%
