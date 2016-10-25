@@ -177,7 +177,7 @@ SlurmJob <- setRefClass(
       ensure_exists(r_log_dir)
     }
     r_log_latest_file <- paste0(name, ".Rout")
-    r_log_specific_file <- paste0("\\${SLURM_JOB_ID}_", r_log_latest_file)
+    r_log_specific_file <- paste0("\\${SLURM_JOB_ID}__", r_log_latest_file)
     file.path(r_log_dir, r_log_specific_file)
   },
   jobname = function(){
