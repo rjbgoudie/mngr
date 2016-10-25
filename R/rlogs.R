@@ -20,15 +20,31 @@ count_rout_errors <- function(log){
 parse_rout_files <- function(paths){
   warnings <- unname(sapply(paths, count_rout_warnings))
   errors <- unname(sapply(paths, count_rout_errors))
-  warnings <- ifelse(warnings == "1",
-                     paste0("\x1b[43m\x1b[30m", warnings, "w\x1b[0m"),
-                     "")
-  errors <- ifelse(errors == "1", paste0("\x1b[41m", errors, "e\x1b[0m"), "")
-
   final <- unname(sapply(paths, file_last_line))
 
+  # get basename, then remove ".Rout" from the end
   basenames <- basename(paths)
-  data.frame(names = basenames, w = warnings, e = errors, f = final)
+  filenames <- substr(basenames, 1, nchar(basenames) - 5)
+
+  x <- data.frame(name = filenames,
+                  warnings = warnings,
+                  errors = errors,
+                  final = final,
+                  stringsAsFactors = FALSE)
+  if (nrow(x) > 0){
+    x <- x %>%
+      do(parse_name(., type = "rout"))
+    x <- all_run_times(x)
+    x$success <- success(x)
+    x <- x %>%
+      mutate(final = if_else(success == TRUE, "", final)) %>%
+      select(jobname, jid, everything()) %>%
+      select(-matches("final"), final)
+  } else {
+    warning("No logs found")
+    NULL
+  }
+  x
 }
 
 run_time <- function(path){
@@ -39,4 +55,19 @@ run_time <- function(path){
   } else {
     NULL
   }
+}
+
+success <- function(x){
+  grepl("[0-9]+h [0-9]+m [0-9]+s", x$final)
+}
+
+all_run_times <- function(x){
+  m <- regexec("1;42;30m([^h]+)h ([^m]+)m ([^s]+)s", x$final)
+  d <- as.data.frame(t(sapply(regmatches(x$final, m), "[", 2:4)),
+                     stringsAsFactors = FALSE)
+  d <- d %>%
+    rename(h = V1, m = V2, s = V3) %>%
+    mutate_all(as.numeric) %>%
+    transmute(internal_run_seconds = 360 * h + 60 * m + s)
+  cbind(x, d)
 }

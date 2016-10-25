@@ -5,17 +5,23 @@
 #' is a path to R log directory.
 #'
 #' @export
-monitor <- function(){
+monitor <- function(jobs = NULL, logs = NULL){
   set_terminal_width()
 
   suppressWarnings({
     suppressMessages({
-      args <- commandArgs(TRUE)
-      no_jobs <- args[[1]] == "No"
-      args_split <- strsplit(args[[1]], " ")[[1]]
+      if (is.null(jobs)){
+        args <- commandArgs(TRUE)
+        no_jobs <- args[[1]] == "No"
+        args_split <- strsplit(args[[1]], " ")[[1]]
 
-      jids <- strsplit(args_split[1], ",")[[1]]
-      logs_dir <- args_split[2]
+        jids <- strsplit(args_split[1], ",")[[1]]
+        logs_dir <- args_split[2]
+      } else {
+        jids <- jobs
+        logs_dir <- logs
+        no_jobs <- length(jids) == 0
+      }
       logs_paths <- Sys.glob(paste0(logs_dir, "/", jids, "*.Rout"))
 
       squeue_status <- squeue(jobs = jids)
@@ -25,23 +31,19 @@ monitor <- function(){
 
   have_squeue_status <-
     !is.null(squeue_status) &&
-     is.data.frame(squeue_status) &&
-     nrow(squeue_status) > 0
+    is.data.frame(squeue_status) &&
+    nrow(squeue_status) > 0
   have_rout <- !is.null(rout_df) && nrow(rout_df) > 0
 
-  if (!no_jobs){
-    if (have_squeue_status){
-      cat("Queue status:\n")
-      print(squeue_status)
-      cat("\n")
-    }
-
-    if (have_rout){
-      cat("Rout status:\n")
-      cat_df(rout_df)
-    }
-  } else {
+  if (!have_rout & !have_squeue_status){
     message("No jobs submitted")
+  } else if (!have_rout & have_squeue_status){
+    pretty_print_squeue(squeue_status)
+  } else if (have_rout & !have_squeue_status){
+    pretty_print_rout(rout_df)
+  } else {
+    merged <- merge_tables(squeue_status, rout_df)
+    pretty_print_merged(merged, squeue_status)
   }
 }
 
@@ -49,12 +51,18 @@ monitor <- function(){
 #'
 #' @param jobs Vector of Slurm Job IDs. NULL returns all jobs
 #' @param user Vector of usernames. NULL returns all jobs
-#' @param format A format string for Slurm's squeue function, columns must be
-#'   tab separated (because Slurm sometimes includes spaces in output)
+#' @return
+#' A data.frame with the following columns:
+#'
+#' jid, partition, jobname, shortsha, user, slurm_status, t_used, nodes,
+#' nodelist_reason, t_left, priority
+#'
+#' plus
+#'
+#' arm___xyz columns for each arm value
 squeue <- function(jobs = NULL,
-                   user = NULL,
-                   format =
-                     "%.8i\t%.15P\t%.30j\t%.7u\t%.2t\t%.10M\t%.6D\t%.20R\t%.10L\t%.10p"){
+                   user = NULL){
+  format <- "%.8i\t%.50P\t%.100j\t%.7u\t%.2t\t%.10M\t%.6D\t%.20R\t%.10L\t%.10p"
   if (!is.null(jobs)){
     jobs <- paste0(" --jobs=", paste0(jobs, collapse = ","))
   } else {
@@ -73,9 +81,24 @@ squeue <- function(jobs = NULL,
                           intern = TRUE,
                           ignore.stderr = TRUE)
   if (length(attributes(squeue_output)$status) == 0){
-    read.table(text = squeue_output, header = TRUE,  sep = "\t")
+    x <- read.table(text = squeue_output,
+                    header = TRUE,
+                    sep = "\t",
+                    strip.white = TRUE)
+    if (nrow(x) > 0){
+      colnames(x) <- tolower(colnames(x))
+      x <- x %>%
+        rename(jid = jobid,
+               t_used = time,
+               t_left = time_left,
+               slurm_status = st,
+               nodelist_reason = nodelist.reason.) %>%
+        do(parse_name(., type = "squeue"))
+    }
+    x
   } else {
-    "Job does not exist"
+    message("Job does not exist")
+    NULL
   }
 }
 
@@ -106,7 +129,48 @@ qdel <- function(jobids){
   system(command)
 }
 
-kill_pattern <- function(pattern = NULL){
-  jobids <- get_jobids(pattern)
+kill_pattern <- function(shortsha = NULL, user = NULL){
+  sq <- squeue(user = user)
+  jobids <- sq[sq$shortsha == shortsha, "jid"]
   qdel(jobids)
+}
+
+sinfo <- function(partition = "mrc-bsu-sand,mrc-bsu-tesla"){
+  format <- "%P\t%F"
+  format <- paste0("--format=\"", format, "\"")
+
+  if (!is.null(partition)){
+    partition <- paste0("--partition=\"", partition, "\"")
+  } else {
+    partition <- ""
+  }
+
+  sinfo_output <- system(paste("sinfo", format, partition),
+                         intern = TRUE,
+                         ignore.stderr = TRUE)
+  if (length(attributes(sinfo_output)$status) == 0){
+    x <- read.table(text = sinfo_output,
+                    header = TRUE,
+                    sep = "\t",
+                    strip.white = TRUE)
+    if (nrow(x) > 0){
+      colnames(x) <- tolower(colnames(x))
+      x <- x %>%
+        rename(status = `nodes.a.i.o.t.`) %>%
+        separate(status, c("allocated", "idle", "other", "total"))
+    }
+    x
+  } else {
+    message("Job does not exist")
+    NULL
+  }
+}
+
+slurm_summary <- function(squeue_status){
+  # summary
+  sinfo <- sinfo(partition = "mrc-bsu-sand,mrc-bsu-tesla")
+  paste0("\033[36mSHA:\033[39m ", unique(squeue_status$shortsha),
+         " \033[36mPartition:\033[39m ", unique(squeue_status$partition),
+         " \033[36msand idle:\033[39m ", sinfo[1, "idle"], "/", sinfo[1, "total"],
+         " \033[36mtesla idle:\033[39m ", sinfo[2, "idle"], "/", sinfo[2, "total"])
 }

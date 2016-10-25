@@ -1,7 +1,7 @@
 #' Mngr
 #' @docType package
 #' @name mngr
-#' @import tools git2r
+#' @import tools git2r dplyr tidyr
 NULL
 
 task_env <- new.env()
