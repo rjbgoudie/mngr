@@ -129,6 +129,8 @@ file_last_line <- function(path){
 #'
 #' @param x A data frame
 cat_df <- function(x){
+  terminal_width <- getOption("width")
+
   # http://stackoverflow.com/a/38662876
   ansi_regex <- "(\\x9B|\\x1B\\[)[0-?]*[ -\\/]*[@-~]"
 
@@ -136,7 +138,6 @@ cat_df <- function(x){
   colnames(x) <- paste0("\033[4m", colnames(x), "\033[24m")
   x <- rbind(colnames(x), x)
 
-  terminal_width <- get_terminal_width()
   total_width <- 0
   # pad out narrow columns, but account for ANSI codes, by stripping these out
   # before calculating the widths
@@ -150,7 +151,7 @@ cat_df <- function(x){
     excess_width <- max(0, total_width - terminal_width + 3 + i)
     max_width <- width - excess_width
     too_long <- nc > max_width
-    x[too_long, i] <- paste0(substr(x[too_long, i], 1, max_width),
+    x[too_long, i] <- paste0(substr(stripped[too_long], 1, max_width),
                              "...",
                              "\x1b[0m")
     diff <- diff + excess_width
@@ -178,11 +179,11 @@ not.null <- function(x){
   !is.null(x)
 }
 
-set_terminal_width <- function(){
-  width <- as.numeric(system("tput cols", intern = T))
+set_terminal_width <- function(width){
+  width <- as.numeric(width)
   options(width = width)
 }
 
 get_terminal_width <- function(){
-  as.numeric(system("tput cols", intern = T))
+  as.numeric(Sys.getenv("COLUMNS"))
 }

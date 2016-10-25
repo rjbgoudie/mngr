@@ -6,14 +6,13 @@
 #'
 #' @export
 monitor <- function(jobs = NULL, logs = NULL){
-  set_terminal_width()
-
   rout_df <- NULL
   squeue_status <- NULL
   suppressWarnings({
     suppressMessages({
+      args <- commandArgs(TRUE)
+      set_terminal_width(args[[2]])
       if (is.null(jobs)){
-        args <- commandArgs(TRUE)
         no_jobs <- args[[1]] == "No"
         args_split <- strsplit(args[[1]], " ")[[1]]
 
