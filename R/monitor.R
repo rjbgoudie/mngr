@@ -5,13 +5,16 @@
 #' is a path to R log directory.
 #'
 #' @export
-monitor <- function(jobs = NULL, logs = NULL){
+monitor <- function(jobs = NULL, logs = NULL, width = NULL){
   rout_df <- NULL
   squeue_status <- NULL
   suppressWarnings({
     suppressMessages({
       args <- commandArgs(TRUE)
-      set_terminal_width(args[[2]])
+      if (is.null(width)){
+        width <- args[[2]]
+      }
+      set_terminal_width(width)
       if (is.null(jobs)){
         no_jobs <- args[[1]] == "No"
         args_split <- strsplit(args[[1]], " ")[[1]]
