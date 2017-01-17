@@ -2,8 +2,12 @@ parse_name <- function(x, type = "rout"){
   probe_text <- head(x$name, 1)
   matches <- gregexpr("__", probe_text)[[1]]
   nmatches <- length(matches)
+  min_matches <- switch(type,
+                        `rout` = 2,
+                        `rlatest` = 2,
+                        `squeue` = 2)
   # a valid job name has at least 2 __
-  if (nmatches > 2 || (type == "rlatest" && nmatches > 1)){
+  if (nmatches >= min_matches){
     npieces <- nmatches + 1
     piece_names <- paste0("piece", seq_len(npieces))
 
