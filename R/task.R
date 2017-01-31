@@ -193,13 +193,23 @@ Task <- setRefClass(
         arms_count <- length(arms)
       }
 
+      throttle <- get_throttle()
+
       debug_msg(debug, "Building ", arms_count, " arms for ", name)
       for (arm_index in seq_len(arms_count)){
+
+        arm_prereqs <- prereq_taskarm_names(arm_index, debug = debug)
+
+        throttle_arm_dependency <- throttle_arm_dependency(arm_index, throttle)
+        if (!is.null(throttle_arm_dependency)){
+          arm_prereqs <- c(arm_prereqs, taskarm_name(throttle_arm_dependency))
+        }
+
         this_taskarm_name <- taskarm_name(arm_index)
         taskarm_create(task_name = name,
                        taskarm_name = this_taskarm_name,
                        arm_index = arm_index,
-                       prereqs = prereq_taskarm_names(arm_index, debug = debug),
+                       prereqs = arm_prereqs,
                        actions = actions,
                        properties = properties,
                        custom_timestamp = custom_timestamp)
@@ -222,6 +232,13 @@ Task <- setRefClass(
   getShared = function(){
     shared
   },
+  get_throttle = function(){
+    if (length(properties$throttle) > 0){
+      properties$throttle
+    } else {
+      task_env$config$throttle %||% mngr_default_throttle
+    }
+  },
   set_properties = function(...){
     new <- list(...)
     to_replace <- match(names(new), names(properties))
@@ -234,3 +251,12 @@ Task <- setRefClass(
   }
   )
 )
+
+throttle_arm_dependency <- function(arm_index,  throttle){
+  index <- ((arm_index %/% throttle) - 1) * throttle + arm_index %% throttle
+  if (index >= 1){
+    index
+  } else {
+    NULL
+  }
+}
