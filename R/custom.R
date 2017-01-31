@@ -21,3 +21,11 @@
   task_obj$set_properties(hours = hours)
   invisible(taskname)
 }
+
+#' @export
+`%throttle%` <- function(taskname, throttle){
+  stopifnot(inherits(taskname, "character"))
+  task_obj <- task_get(taskname, exists = TRUE)
+  task_obj$set_properties(throttle = throttle)
+  invisible(taskname)
+}
