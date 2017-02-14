@@ -6,9 +6,10 @@
 #' @param extension file extension
 #' @export
 file_path <- function(file,
-                      arm = arm_name(),
+                      arm = arm_name(expand_split = !splitting),
                       directory = "etc",
-                      extension = ""){
+                      extension = "",
+                      splitting = FALSE){
   output_fun <- task_env$config$output
   np <- normalizePath(".")
   pre <- output_fun(run_dir())

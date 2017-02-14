@@ -90,7 +90,8 @@ Task <- setRefClass(
     prereqs = "character", # a list of task names
     actions = "list",
     already_invoked = "logical",
-    shared = "list",
+    merge = "list",
+    split = "list",
     properties = "list",
     custom_timestamp = "list"
   ),
@@ -109,7 +110,7 @@ Task <- setRefClass(
     if (is_dummy()){
       name
     } else {
-      arm <- arms(include_shared = TRUE)[[arm_index]]
+      arm <- arms()[[arm_index]]
       o <- order(names(arm))
       arm <- arm[o]
       arm_values <- sapply(arm, paste, collapse = "-")
@@ -126,27 +127,68 @@ Task <- setRefClass(
       actions <<- c(list(actions_new), actions)
     }
   },
-  arms = function(include_shared = TRUE){
+  arms = function(expand_split = TRUE){
     arms_list <- task_env$arms_list
-    share <- getShared()
-    which_arms_shared <- names(arms_list) %in% share
-    arms_unshared <- do.call("expand.grid", arms_list[!which_arms_shared])
-    arms_unshared <- lapply(seq_len(nrow(arms_unshared)), function(i){
-      as.list(arms_unshared[i,, drop = FALSE])
-    })
-    if (include_shared){
-      if (sum(which_arms_shared) > 0){
-        arms_shared <- arms_list[which_arms_shared]
-        values <- lapply(seq_along(arms_unshared), function(x) arms_shared)
-        arms_unshared <- mapply(append, arms_unshared, values, SIMPLIFY = FALSE)
-      }
-      arms_unshared
+
+    merge <- getMerge()
+    split <- getSplit()
+
+    # 1. merged arms are never expanded via expand.grid
+    # 2. if expand_split = TRUE, then split arms are treated as standard arms
+    # 3. if expand_split = FALSE, then split arms are repeated nrow(expand.grid)
+    #    times
+
+    if (expand_split){
+      dont_expand <- merge
     } else {
-      arms_unshared
+      dont_expand <- c(merge, split)
     }
+
+    which_arms_expand <- !(names(arms_list) %in% dont_expand)
+    which_arms_merge <- names(arms_list) %in% merge
+
+    arms_base <- do.call("expand.grid", arms_list[which_arms_expand])
+    out <- lapply(seq_len(nrow(arms_base)), function(i){
+      as.list(arms_base[i,, drop = FALSE])
+    })
+
+    if (!expand_split){
+      which_arms_split <- names(arms_list) %in% split
+
+      if (sum(which_arms_split) > 0){
+        arms_split <- arms_list[which_arms_split]
+        arms_split_expanded <- do.call("expand.grid", arms_split)
+        arms_split_expanded_count <- nrow(arms_split_expanded)
+
+        if (length(out) > 0){
+          out <- lapply(seq_along(out), function(i){
+            lapply(seq_len(arms_split_expanded_count), function(j){
+              append(out[[i]], arms_split)
+            })
+          })
+          out <- unlist(out, recursive = FALSE)
+        } else {
+          out <- lapply(seq_len(arms_split_expanded_count), function(i){
+            arms_split
+          })
+        }
+      }
+    }
+
+    if (sum(which_arms_merge) > 0){
+      arms_merge <- arms_list[which_arms_merge]
+
+      if (length(out) > 0){
+        values <- lapply(seq_along(out), function(x) arms_merge)
+        out <- mapply(append, out, values, SIMPLIFY = FALSE)
+      } else {
+        out <- list(arms_merge)
+      }
+    }
+    out
   },
-  arm = function(arm_index, include_shared = TRUE){
-    arms(include_shared = include_shared)[[arm_index]]
+  arm = function(arm_index){
+    arms()[[arm_index]]
   },
   which_arms = function(to_match){
     arm_indicators <- sapply(arms(), function(arm){
@@ -159,8 +201,7 @@ Task <- setRefClass(
     which(arm_indicators)
   },
   prereq_taskarm_names = function(arm_index,
-                                  arm_values = arm(arm_index = arm_index,
-                                                   include_shared = TRUE),
+                                  arm_values = arm(arm_index = arm_index),
                                   debug = FALSE){
     tasks <- prereq_tasks()
     out <- lapply(tasks, function(task){
@@ -189,7 +230,7 @@ Task <- setRefClass(
 
       arms_count <- 1
       if (length(actions) > 0){
-        arms <- arms(include_shared = FALSE)
+        arms <- arms()
         arms_count <- length(arms)
       }
 
@@ -226,11 +267,17 @@ Task <- setRefClass(
     tasks <- prereq_tasks()
     lapply(tasks, function(task) task$invoke(debug = debug))
   },
-  add_shared = function(new_shared){
-    shared <<- c(shared, new_shared)
+  add_merge = function(new_merge){
+    merge <<- c(merge, new_merge)
   },
-  getShared = function(){
-    shared
+  getMerge = function(){
+    merge
+  },
+  add_split = function(new_split){
+    split <<- c(split, new_split)
+  },
+  getSplit = function(){
+    split
   },
   get_throttle = function(){
     if (length(properties$throttle) > 0){

@@ -32,10 +32,21 @@ startup <- function(){
   }
   mngrfile <- find_mngrfile(getwd())
   source(mngrfile)
-  arms <- arms_all(.task, include_shared = TRUE)
+  arms <- arms_all(.task)
+  if (.arm > length(arms)){
+    stop("Can't find arm ", .arm, "; there are only ", length(arms), " arms")
+  }
   arm <- arms[[.arm]]
   attach(arm)
   cat("\nArm values\n")
-  arm_values <- capture.output(unlist(arm))
-  cat(paste(arm_values, collapse = "\n"), "\n\n")
+  cat(paste(pretty_print_arm_values(arm), collapse = "\n"), "\n\n")
+}
+
+pretty_print_arm_values <- function(x){
+  capture.output(str(x,
+                     give.length = FALSE,
+                     give.attr = FALSE,
+                     no.list = TRUE,
+                     comp.str = "",
+                     indent.str = ""))
 }
