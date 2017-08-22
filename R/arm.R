@@ -29,7 +29,7 @@ arm_name_merge <- function(){
   arm <- arms[[.arm]]
   o <- order(names(arm))
   arm <- arm[o]
-  grid <- expand.grid(arm)
+  grid <- expand.grid(sapply(arm, as.character))
   apply(grid, 1, function(arm){
     arm_values <- sapply(arm, paste, collapse = ",")
     arm_names <- names(arm)
