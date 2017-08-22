@@ -109,6 +109,10 @@ squeue <- function(jobs = NULL,
   }
 }
 
+#' Summaries the latest R output
+#'
+#' Displays a pretty table of the latest R output
+#'
 #' @export
 latest_logs <- function(){
   with_dir(run_dir(check = TRUE), {
@@ -125,23 +129,41 @@ latest_logs <- function(){
   })
 }
 
+#' Extract Job ID from squeue output
+#'
+#' @param pattern A regular expression of Job Names to extract the Job ID of
+#' @return A vector of Job IDs
 get_jobids <- function(pattern = NULL){
   queue <- squeue()
   rows <- grepl(pattern, x = queue$NAME)
   queue[rows, "JOBID"]
 }
 
+#' A wrapper around Sluerm qdel
+#'
+#' @param jobids A vector of Slurm Job IDs
+#' @return Any errors from qdel will be returned
 qdel <- function(jobids){
   command <- paste("scancel", paste(jobids, collapse = " "))
   system(command)
 }
 
+#' Kill Slurm jobs matching pattern
+#'
+#' @param shortsha The short SHA of the jobs to be killed
+#' @param user The Slurm user whose jobs they are
 kill_pattern <- function(shortsha = NULL, user = NULL){
   sq <- squeue(user = user)
   jobids <- sq[sq$shortsha == shortsha, "jid"]
   qdel(jobids)
 }
 
+#' Information about slurm cluster
+#'
+#' A wrapper around Slurm sinfo
+#'
+#' @param partition A character string containing comma-separated Slurm
+#' partitions
 sinfo <- function(partition = "mrc-bsu-sand,mrc-bsu-tesla"){
   format <- "%P\t%F"
   format <- paste0("--format=\"", format, "\"")
@@ -173,8 +195,10 @@ sinfo <- function(partition = "mrc-bsu-sand,mrc-bsu-tesla"){
   }
 }
 
+#' Return a brief summary of the Slurm queue status
+#'
+#' @param squeue_status TODO
 slurm_summary <- function(squeue_status){
-  # summary
   sinfo <- sinfo(partition = "mrc-bsu-sand,mrc-bsu-tesla")
   paste0("\033[36mSHA:\033[39m ", unique(squeue_status$shortsha),
          " \033[36mPartition:\033[39m ", unique(squeue_status$partition),

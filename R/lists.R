@@ -1,3 +1,7 @@
+#' Parse job names
+#'
+#' @param x A job name
+#' @param type Either "rout", "rlatest" or "squeue"
 parse_name <- function(x, type = "rout"){
   probe_text <- head(x$name, 1)
   matches <- gregexpr("__", probe_text)[[1]]
@@ -50,6 +54,7 @@ parse_name <- function(x, type = "rout"){
   x
 }
 
+#' Pretty print squeue output
 pretty_print_squeue <- function(x){
   out <- x %>%
     arrange(jobname) %>%
@@ -147,7 +152,7 @@ pretty_print_merged <- function(full_status, slurm_status){
                                          slurm_status,
                                          "\033[39m"),
                                   paste(slurm_status)),
-             nodelist_reason = nodelist_reason)
+           nodelist_reason = nodelist_reason)
 
   out <- bind_rows(finished_success, awaiting_dependency, more_complex) %>%
     mutate(ok = pretty_success_status(finished, success),
@@ -202,6 +207,11 @@ prep_finished_success <- function(x){
     ungroup()
 }
 
+#' Merge squeue and rout status tables
+#'
+#' @param squeue_status A squeue table
+#' @param rout_df A data.frame of rout
+#' @return A merged table
 merge_tables <- function(squeue_status, rout_df){
   # join tables
   arm_cols <- substring(colnames(squeue_status), 1, 6) == "arm___"
@@ -219,6 +229,12 @@ merge_tables <- function(squeue_status, rout_df){
            awaiting_dependency = nodelist_reason == "(Dependency)")
 }
 
+#' Pretty print the time
+#'
+#' Print times as "XXh XXm XXs"
+#'
+#' @param t A vector of times
+#' @return A character vector of pretty print times
 pretty_print_time <- function(t){
   sapply(t, function(time){
     if (!is.na(time)){
@@ -234,6 +250,14 @@ pretty_print_time <- function(t){
   })
 }
 
+#' Pretty print ticks and crosses
+#'
+#' Returns a vector with ticks for components that have finished successfully,
+#' and crosses for components that finished unsuccessfully
+#'
+#' @param finished A logical vector of finished indicators
+#' @param success A logiscal vector of success indicators
+#' @return A character vector of ticks, crosses and NAs
 pretty_success_status <- function(finished, success){
   out <- NA
   out <- ifelse(finished & success, "\033[32m✔︎\033[39m", NA)

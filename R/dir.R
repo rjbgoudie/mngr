@@ -1,9 +1,10 @@
 #' Check if dir is inside git work tree
 #'
 #' Uses git rev-parse to test whether the supplied directory is a git work
-#' tree
+#' tree.
+#' Returns FALSE if there are errors or warnings when running rev-parse.
 #'
-#' @param dir A directory
+#' @param dir A directory, by default the current working directory
 is_inside_git_work_tree <- function(dir = getwd()){
   command <- "git rev-parse --is-inside-work-tree"
   out <- NA
@@ -20,7 +21,7 @@ is_inside_git_work_tree <- function(dir = getwd()){
 
 #' Get the toplevel git directory
 #'
-#' @param dir A directory
+#' @param dir A directory, by default the current working directory
 #' @param check Logical, if TRUE no test for whether dir is inside a git work
 #' tree
 git_toplevel_dir <- function(dir = getwd(), check = TRUE){
@@ -34,7 +35,7 @@ git_toplevel_dir <- function(dir = getwd(), check = TRUE){
 
 #' Check if dir is a run directory
 #'
-#' Simply checks whether dir start with $HOME/run
+#' simply checks whether dir start with $HOME/run
 #'
 #' @param dir A directory
 is_run_dir <- function(dir = getwd()){
