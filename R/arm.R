@@ -34,6 +34,8 @@ arms_all <- function(task, expand_split = TRUE){
 #' If expand_split = FALSE, then split arms are repeated nrow(expand.grid)
 #' times
 #'
+#' NOTE THIS SEEMS TO DUPLICATE taskarm_name??
+#'
 #' @param expand_split Determine the handling of split arms
 #' @return A character vector of length 1, the arm_name
 arm_name <- function(expand_split = TRUE){
@@ -43,6 +45,9 @@ arm_name <- function(expand_split = TRUE){
   o <- order(names(arm))
   arm <- arm[o]
   arm_values <- sapply(arm, paste, collapse = "-")
+  arm_values_long <- nchar(arm_values) > 10
+  arm_values[arm_values_long] <- sapply(arm_values[arm_values_long],
+                                        digest, algo = "xxhash32")
   arm_names <- names(arm)
   paste(arm_names, arm_values, sep = "--",  collapse = "__")
 }
