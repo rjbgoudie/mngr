@@ -1,7 +1,7 @@
 #' Mngr
 #' @docType package
 #' @name mngr
-#' @import tools git2r dplyr tidyr digest
+#' @import dplyr tidyr
 NULL
 
 # This environment contains the main variables

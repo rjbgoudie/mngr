@@ -120,7 +120,7 @@ Task <- setRefClass(
         arm_values <- sapply(arm, paste, collapse = "-")
         arm_values_long <- nchar(arm_values) > 10
         arm_values[arm_values_long] <- sapply(arm_values[arm_values_long],
-                                              digest, algo = "xxhash32")
+                                              digest::digest, algo = "xxhash32")
         arm_names <- names(arm)
         arm_str <- paste(arm_names, arm_values, sep = "--",  collapse = "__")
         paste(name, arm_str, sep = "__")

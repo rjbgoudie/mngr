@@ -6,7 +6,7 @@
 rfiles <- function(){
   rfiles <- list.files(path = ".",
                        pattern = "\\.R$")
-  rfiles_sans_ext <- sapply(rfiles, file_path_sans_ext)
+  rfiles_sans_ext <- sapply(rfiles, tools::file_path_sans_ext)
   sapply(rfiles_sans_ext, rfile)
   nfiles <- length(rfiles_sans_ext)
   message("Added ", nfiles, " R files")

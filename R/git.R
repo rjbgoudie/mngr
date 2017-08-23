@@ -14,7 +14,7 @@ git_clone_or_pull <- function(dir = getwd()){
     stop("Directory is not a git directory")
   }
   repo <- git2r::repository(path = dir, discover = TRUE)
-  git_head_name <- head(repo)@name
+  git_head_name <- git2r::head(repo)@name
 
   run_git_toplevel_dir <- run_git_toplevel_dir(dir = dir, check = TRUE)
   dir.create(run_git_toplevel_dir, recursive = TRUE, showWarnings = FALSE)
