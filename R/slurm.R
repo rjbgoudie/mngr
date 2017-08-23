@@ -52,11 +52,17 @@ task$set_jobid(jobid)
 slurm_add_jobids(jobid)
 }
 
+#' Add Job ID to list of Job IDs
+#'
+#' @param new A new Job ID
 slurm_add_jobids <- function(new){
   jobids <- c(slurm_env$jobids, new)
   assign("jobids", jobids, envir = slurm_env)
 }
 
+#' Run jobs
+#'
+#' @param debug A logical, indicating whether debug messages should be shown
 run_jobs <- function(debug = FALSE){
   joblist <- job_env$joblist
   lapply(joblist, function(job){
