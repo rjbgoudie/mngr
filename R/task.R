@@ -103,7 +103,7 @@ Task <- setRefClass(
       custom_timestamp <<- list()
       actions <<- list()
       prereqs <<- character(0)
-      arms_cached <<- FALSE
+      arms_cached <<- c(FALSE, FALSE)
       initFields(...)
     },
     is_dummy = function(){
@@ -135,7 +135,7 @@ Task <- setRefClass(
       }
     },
     arms = function(expand_split = TRUE){
-      if (!arms_cached){
+      if (!arms_cached[expand_split + 1]){
         arms_list <- task_env$arms_list
 
         merge <- getMerge()
@@ -193,11 +193,11 @@ Task <- setRefClass(
             out <- list(arms_merge)
           }
         }
-        arms_cached <<- TRUE
-        arms_cache <<- out
+        arms_cached[expand_split + 1] <<- TRUE
+        arms_cache[[expand_split + 1]] <<- out
         out
       } else {
-        arms_cache
+        arms_cache[[expand_split + 1]]
       }
     },
     arm = function(arm_index){
