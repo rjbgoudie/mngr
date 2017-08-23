@@ -1,4 +1,4 @@
-#' Evaluate expression with working directory
+#' Evaluate expression in a particular working directory
 #'
 #' @param dir path to directory in which to evaluate expression
 #' @param expr an expression
@@ -16,6 +16,7 @@ with_dir <- function(dir,  expr){
 #' @param pattern character string containing a regular expression
 #' @param replacement a replacement for matched pattern
 #' @param dir a directory to tack on the end of the path
+#' @return the path after replacment and concatenation
 #' @export
 sub_path <- function(pattern, replacement, dir){
   function(path){
@@ -34,6 +35,7 @@ sub_path <- function(pattern, replacement, dir){
 #' @param file.sep path separator
 #' @param up_one platform specific up one level notation
 #' @param same platform specific same directory
+#' @return A relative path to dir from start
 rel_path <- function(dir,
                      start,
                      file.sep = .Platform$file.sep,
@@ -108,6 +110,7 @@ system_in_dir <- function(command, dir, ...){
 #' Internally uses system calls to tail and sed
 #'
 #' @param path Path to the file
+#' @return A character vector of length 1 containing the last line of file
 file_last_line <- function(path){
   out <- system(paste("tail -n 1 ", path, " | sed '2d' $1"), intern = TRUE)
   # if the last line is very long, R splits it into pieces

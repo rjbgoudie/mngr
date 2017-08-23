@@ -1,5 +1,12 @@
 #' Clone or pull to the run dir
 #'
+#' Clone or pull to the directory to the corresponding run directory
+#'
+#' 1. Ensure dir is a git worktree
+#' 2. Get the git HEAD name
+#' 3. Create the run directory if it does not exist
+#' 4. Clone/pull as required
+#'
 #' @param dir directory to clone or pull to the corresponding rundir
 git_clone_or_pull <- function(dir = getwd()){
   dir_is_inside_git_work_tree <- is_inside_git_work_tree(dir)
@@ -34,6 +41,7 @@ git_clone_or_pull <- function(dir = getwd()){
 #' @param dir A directory
 #' @param base_only Logical, should only the first part of a foo/bar branch
 #' name be returned
+#' @return A character with the abbrev-ref
 git_abbrev_ref <- function(dir = getwd(), base_only = TRUE){
   command <- "git rev-parse --abbrev-ref HEAD"
   abbrev_ref <- system_in_dir(command, dir = dir, intern = TRUE)
@@ -50,6 +58,8 @@ git_abbrev_ref <- function(dir = getwd(), base_only = TRUE){
 #'
 #' @param dir A directory
 #' @param length Number of characters
+#' @return A character vector of length 1 containing the short SHA for the HEAD
+#' commit
 git_short_sha <- function(dir = getwd(), length = 4){
   command <- paste0("git rev-parse --short=", length, " HEAD")
   system_in_dir(command, dir = dir, intern = TRUE)

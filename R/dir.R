@@ -2,9 +2,10 @@
 #'
 #' Uses git rev-parse to test whether the supplied directory is a git work
 #' tree.
-#' Returns FALSE if there are errors or warnings when running rev-parse.
 #'
 #' @param dir A directory, by default the current working directory
+#' @return A logical indicating whether dir is inside a git work tree. Returns
+#'   FALSE if there are errors or warnings when running rev-parse.
 is_inside_git_work_tree <- function(dir = getwd()){
   command <- "git rev-parse --is-inside-work-tree"
   out <- NA
@@ -24,6 +25,7 @@ is_inside_git_work_tree <- function(dir = getwd()){
 #' @param dir A directory, by default the current working directory
 #' @param check Logical, if TRUE no test for whether dir is inside a git work
 #' tree
+#' @return The path to the toplevel git directory
 git_toplevel_dir <- function(dir = getwd(), check = TRUE){
   if (check){
     stopifnot(is_inside_git_work_tree(dir))
@@ -38,6 +40,8 @@ git_toplevel_dir <- function(dir = getwd(), check = TRUE){
 #' simply checks whether dir start with $HOME/run
 #'
 #' @param dir A directory
+#' @return A logical vector indicating whether the directory starts with
+#' $HOME/run
 is_run_dir <- function(dir = getwd()){
   home <- Sys.getenv("HOME")
   pattern <- paste0("^", home, "/run")
@@ -48,12 +52,17 @@ is_run_dir <- function(dir = getwd()){
 #'
 #' Return the path to the git toplevel (ie the root directory) of the
 #' corresponding run directory for the supplied directory.
+#'
+#' The path: $HOME/foo/gittoplevel/folder
+#' is converted to: $HOME/run/foo/gittoplevel
+#'
 #' If the supplied dir is a run directory, then the git toplevel of that dir is
 #' returned.
 #'
 #' @param dir A directory
 #' @param check Logical, if FALSE no test for whether dir is inside a git work
 #' tree
+#' @return Path to the git toplevel for the run directory corresponding to dir
 run_git_toplevel_dir <- function(dir = getwd(), check = TRUE){
   if (check){
     stopifnot(is_inside_git_work_tree(dir))
@@ -72,13 +81,16 @@ run_git_toplevel_dir <- function(dir = getwd(), check = TRUE){
 
 #' Corresponding run directory
 #'
-#' Return the path to the corresponding run directory for the supplied
-#' directory. If the supplied dir is a run directory, then the supplied
-#' directory is returned.
+#' Converts a directory to the corresponding run directory. For example, the
+#' path $HOME/foo/gittoplevel/folder is converted to
+#' $HOME/run/foo/gittoplevel/folder
 #'
 #' @param dir A directory
 #' @param check Logical, if FALSE no test for whether dir is inside a git work
 #' tree
+#' @return Return the path to the corresponding run directory for the supplied
+#' directory. If the supplied dir is a run directory, then the supplied
+#' directory is returned.
 run_dir <- function(dir = getwd(), check = TRUE){
   if (check){
     stopifnot(is_inside_git_work_tree(dir))
