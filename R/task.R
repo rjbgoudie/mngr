@@ -138,9 +138,6 @@ Task <- setRefClass(
       if (!arms_cached[expand_split + 1]){
         arms_list <- task_env$arms_list
 
-        merge <- getMerge()
-        split <- getSplit()
-
         # 1. merged arms are never expanded via expand.grid
         # 2. if expand_split = TRUE, then split arms are treated as standard arms
         # 3. if expand_split = FALSE, then split arms are repeated nrow(expand.grid)
@@ -283,14 +280,8 @@ Task <- setRefClass(
     add_merge = function(new_merge){
       merge <<- c(merge, new_merge)
     },
-    getMerge = function(){
-      merge
-    },
     add_split = function(new_split){
       split <<- c(split, new_split)
-    },
-    getSplit = function(){
-      split
     },
     get_throttle = function(){
       if (length(properties$throttle) > 0){
