@@ -4,13 +4,32 @@
 #' @import tools git2r dplyr tidyr
 NULL
 
+# This environment contains the main variables
+# 1. tasklist - this is a list of tasks
+# 2. config - this is a list of configuration options
+# 3. arms_list
+# 4. post_run_list
 task_env <- new.env()
+
+# This environment contains the taskarm objects
 taskarm_env <- new.env()
+
+# jobids
 slurm_env <- new.env()
+
 job_env <- new.env()
+
+# This is the default maximum number of tasks that can run at once
 mngr_default_throttle <- 100
 
-#' Configure mngr
+#' Set configuration options for mngr
+#'
+#' The current options are:
+#' - queue: the Slurm queue to submit to
+#' - output: where the main output should go
+#' - r_logs: where the R logs should be stored
+#' - slurm_logs: where the Slurm logs should be stored
+#' - throttle: the maximum number of tasks that can run at once
 #'
 #' @param ... a list of values to replace default config
 #' @export
@@ -20,8 +39,11 @@ mngr_config <- function(...){
   assign("config", elements, envir = task_env)
 }
 
-#' Find mngrfile
-#' @param dir a path
+#' Find Mngrfile
+#'
+#' Find the Mngrfile in the supplied directory or the parent directory
+#'
+#' @param dir a path to a directory
 find_mngrfile <- function(dir){
   path <- file.path(dir, "Mngrfile.R")
   if (file.exists(path)){
@@ -36,8 +58,19 @@ find_mngrfile <- function(dir){
   }
 }
 
-#' Execute the task
+#' Execute a task
+#'
+#' Actually run a task, and any prerequisites that have changed since the last
+#' run.
+#'
+#' The process is as follows:
+#' 1. Ensures the current directory is a git work tree
+#' 2. Ensures the current directory is a clean git work directory
+#' 3. Loads the Mngrfile
+#' 4. Invokes the supplied task
+#'
 #' @param name a task name
+#' @param debug A logical, indicating whether to show debug messages
 #' @export
 run <- function(name = "default", debug = FALSE){
   is_inside_git_work_tree <- is_inside_git_work_tree()
