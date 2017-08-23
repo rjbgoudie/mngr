@@ -4,6 +4,9 @@
 #' @param arm make arm-specific
 #' @param directory directory name
 #' @param extension file extension
+#' @param splitting A logical, should the split arm names be combined in a
+#'   single part
+#' @return A character vector of length 1, the file path
 #' @export
 file_path <- function(file,
                       arm = arm_name(expand_split = !splitting),
@@ -26,6 +29,7 @@ file_path <- function(file,
 #' path to rds file
 #'
 #' @param ... passsed to file_path
+#' @return A character vector of length 1, the file path
 #' @export
 rds_file <- function(...){
   file_path(..., directory = "rds", extension = "rds")
@@ -34,6 +38,7 @@ rds_file <- function(...){
 #' path to pdf file
 #'
 #' @param ... passsed to file_path
+#' @return A character vector of length 1, the file path
 #' @export
 pdf_file <- function(...){
   file_path(..., directory = "plots", extension = "pdf")
@@ -42,6 +47,7 @@ pdf_file <- function(...){
 #' path to tiff file
 #'
 #' @param ... passsed to file_path
+#' @return A character vector of length 1, the file path
 #' @export
 tiff_file <- function(...){
   file_path(..., directory = "plots", extension = "tiff")
@@ -50,6 +56,7 @@ tiff_file <- function(...){
 #' path to png file
 #'
 #' @param ... passsed to file_path
+#' @return A character vector of length 1, the file path
 #' @export
 png_file <- function(...){
   file_path(..., directory = "plots", extension = "png")

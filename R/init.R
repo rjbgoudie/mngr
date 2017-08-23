@@ -1,3 +1,7 @@
+#' Startup mngr
+#'
+#' This function set up the .task, .job and .arm variables for non-interactive
+#' jobs, and loads the Mngrfile, so that the arm values are available
 #' @export
 startup <- function(){
   if (!interactive()){
@@ -42,6 +46,8 @@ startup <- function(){
   cat(paste(pretty_print_arm_values(arm), collapse = "\n"), "\n\n")
 }
 
+#' Print the arm values prettily
+#' @param x A set of arm values
 pretty_print_arm_values <- function(x){
   capture.output(str(x,
                      give.length = FALSE,

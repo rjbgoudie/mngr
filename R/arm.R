@@ -1,17 +1,41 @@
-#' Build factorial experiment
-#' @param ... passed to expand.grid
+#' Build factorial arms
+#'
+#' Adds arms of ALL combinations of the supplied variables as arms
+#'
+#' @param ... A number of parameters
+#' @examples
+#' # will run 4 arms, corresponding to each combination
+#' arms_factorial(seed = c(21, 42), type = c("fast", "slow"))
 #' @export
 arms_factorial <- function(...){
   arms_list <- list(...)
   assign("arms_list", arms_list, envir = task_env)
 }
 
+#' All arms of a task
+#'
+#' If expand_split = TRUE, then split arms are treated as standard arms
+#' If expand_split = FALSE, then split arms are repeated nrow(expand.grid)
+#' times
+#'
+#' @param task A task name
+#' @param expand_split Determine the handling of split arms
+#' @return A list of all arms for the task
 arms_all <- function(task, expand_split = TRUE){
   task_obj <- task_get(task, exists = TRUE)
   task_obj$arms(expand_split = expand_split)
 }
 
 #' Unique name for arm
+#'
+#' Create a character name for a particular arm
+#'
+#' If expand_split = TRUE, then split arms are treated as standard arms
+#' If expand_split = FALSE, then split arms are repeated nrow(expand.grid)
+#' times
+#'
+#' @param expand_split Determine the handling of split arms
+#' @return A character vector of length 1, the arm_name
 arm_name <- function(expand_split = TRUE){
   arms <- arms_all(.task, expand_split = expand_split)
 
@@ -23,6 +47,9 @@ arm_name <- function(expand_split = TRUE){
   paste(arm_names, arm_values, sep = "--",  collapse = "__")
 }
 
+#' The arm names prior to merging
+#'
+#' @return A list of arm names
 arm_name_merge <- function(){
   arms <- arms_all(.task)
 
@@ -38,6 +65,10 @@ arm_name_merge <- function(){
   })
 }
 
+#' Merge arms
+#'
+#' @param taskname A task name
+#' @param merge The arm name to merge across
 #' @export
 `%merge%` <- function(taskname, merge){
   stopifnot(inherits(taskname, "character"))
@@ -46,6 +77,10 @@ arm_name_merge <- function(){
   invisible(taskname)
 }
 
+#' Split arms
+#'
+#' @param taskname A task name
+#' @param split The arm name to split across
 #' @export
 `%split%` <- function(taskname, split){
   stopifnot(inherits(taskname, "character"))
@@ -54,6 +89,14 @@ arm_name_merge <- function(){
   invisible(taskname)
 }
 
+#' Load and merge all RDS files
+#'
+#' When a task %merge% a particular arm, then you may wish to load all the
+#' output from the unmerged task.
+#'
+#' All files are loaded, and joined into a list
+#' @param ... Passed to rds_file
+#' @return A list, each component of which corresponds to a unmerged arm
 #' @export
 read_rds_merge <- function(...){
   all_arms <- arm_name_merge()

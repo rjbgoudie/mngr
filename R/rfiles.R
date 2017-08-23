@@ -1,4 +1,7 @@
 #' Add all R files in the current directory as tasks
+#'
+#' All files ending .R are added as tasks. Each task takes the name of the file,
+#' minus the file extension
 #' @export
 rfiles <- function(){
   rfiles <- list.files(path = ".",
@@ -12,7 +15,7 @@ rfiles <- function(){
 #' Create rfile task
 #'
 #' @param name task name
-#' @param action a set of expressions
+#' @param action a set of expressions (currently ignored?)
 rfile_create <- function(name, action){
   task <- Task(name = name)
 

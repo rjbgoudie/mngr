@@ -55,6 +55,10 @@ parse_rout_files <- function(paths, type = "rout"){
   x
 }
 
+#' Parse the run time of a file
+#'
+#' Assumes the runtime appears in green on the final line of the R output
+#' @param path A path to an Rout log file
 run_time <- function(path){
   final <- file_last_line(path)
   m <- regexec("1;42;30m([^h]+)h ([^m]+)m ([^s]+)s", final)
@@ -65,10 +69,16 @@ run_time <- function(path){
   }
 }
 
+#' Determine whether R job ran successfully
+#'
+#' @param x A job row?
 success <- function(x){
   grepl("[0-9]+h [0-9]+m [0-9]+s", x$final)
 }
 
+#' Parse all run times
+#'
+#' @param x A data.frame?
 all_run_times <- function(x){
   m <- regexec("1;42;30m([^h]+)h ([^m]+)m ([^s]+)s", x$final)
   d <- as.data.frame(t(sapply(regmatches(x$final, m), "[", 2:4)),
