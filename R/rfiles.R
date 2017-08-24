@@ -39,7 +39,7 @@ rfile <- function(name){
   if (scheduler == "slurm"){
     action <- slurm_r_job
   } else if (scheduler == "local"){
-    action <- lqueue_job
+    action <- lscheduler_job
   }
 
   if (is.name(expr)){

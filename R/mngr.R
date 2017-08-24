@@ -20,7 +20,7 @@ slurm_env <- new.env()
 job_env <- new.env()
 
 # This environment is used by the local queue scheduler
-lqueue_env <- new.env()
+lscheduler_env <- new.env()
 
 # This is the default maximum number of tasks that can run at once
 mngr_default_throttle <- 100
@@ -120,8 +120,8 @@ run <- function(name = "default", debug = FALSE){
 
   scheduler <- task_env$config$scheduler %||% "slurm"
   if (scheduler == "local"){
-    while (!lqueue_finished()){
-      lqueue_run_next()
+    while (!lscheduler_finished()){
+      lscheduler_run_next()
       Sys.sleep(2)
     }
   }
