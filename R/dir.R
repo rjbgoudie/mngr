@@ -74,7 +74,7 @@ run_git_toplevel_dir <- function(dir = getwd(), check = TRUE){
 
     # FIXME This is a short-term fix
     home <- if (.Platform$OS.type == "windows"){
-      "H:/"
+      "H:"
     } else {
       Sys.getenv("HOME")
     }

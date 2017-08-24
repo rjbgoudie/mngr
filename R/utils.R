@@ -44,8 +44,8 @@ rel_path <- function(dir,
   split_path <- function(path){
     strsplit(path, split = file.sep, fixed = TRUE)[[1]]
   }
-  dirs <- split_path(normalizePath(dir, mustWork = F))
-  starts <- split_path(normalizePath(start, mustWork = F))
+  dirs <- split_path(normalizePath(dir, mustWork = F, winslash = "/"))
+  starts <- split_path(normalizePath(start, mustWork = F, winslash = "/"))
   dirs_length <- length(dirs)
   starts_length <- length(starts)
   common_length <- min(starts_length, dirs_length)
