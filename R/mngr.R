@@ -82,7 +82,7 @@ run <- function(name = "default", debug = FALSE){
   }
 
   suppressWarnings({
-    clean <- system("require-clean-work-dir", intern = TRUE)
+    clean <- system("git diff-index --quiet HEAD --", intern = TRUE)
   })
   if (!is.null(attributes(clean)$status) && attributes(clean)$status == 1){
     stop(clean)
