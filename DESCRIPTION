@@ -9,4 +9,10 @@ Depends:
 License: GPL-2
 LazyData: true
 RoxygenNote: 6.0.1
-Imports: tools, git2r, dplyr, tidyr, digest
+Imports:
+    tools,
+    git2r,
+    dplyr,
+    tidyr,
+    digest,
+    processx

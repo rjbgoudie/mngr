@@ -34,7 +34,13 @@ rfile_create <- function(name, action){
 #' @export
 rfile <- function(name){
   expr <- substitute(name)
-  action <- slurm_r_job
+
+  scheduler <- task_env$config$scheduler %||% "slurm"
+  if (scheduler == "slurm"){
+    action <- slurm_r_job
+  } else if (scheduler == "local"){
+    action <- lqueue_job
+  }
 
   if (is.name(expr)){
     name <- as.character(expr)

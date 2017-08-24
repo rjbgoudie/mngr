@@ -114,4 +114,12 @@ run <- function(name = "default", debug = FALSE){
   } else {
     message("No jobs submitted")
   }
+
+  scheduler <- task_env$config$scheduler %||% "slurm"
+  if (scheduler == "local"){
+    while (!lqueue_finished()){
+      lqueue_run_next()
+      Sys.sleep(2)
+    }
+  }
 }
