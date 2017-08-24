@@ -102,7 +102,12 @@ ensure_exists <- function(dir){
 #' @param dir path to directory
 #' @param ... passed to system()
 system_in_dir <- function(command, dir, ...){
-  system(command = paste0("(cd ", dir, "; ", command, ")"), ...)
+  os <- .Platform$OS.type
+  if (os == "unix"){
+    system(command = paste0("(cd ", dir, "; ", command, ")"), ...)
+  } else if (os == "windows"){
+    system(command = paste("cmd.exe /c cd", dir, "&&", command), ...)
+  }
 }
 
 #' Get the final line of a file
