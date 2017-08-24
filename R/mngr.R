@@ -19,6 +19,9 @@ slurm_env <- new.env()
 
 job_env <- new.env()
 
+# This environment is used by the local queue scheduler
+lqueue_env <- new.env()
+
 # This is the default maximum number of tasks that can run at once
 mngr_default_throttle <- 100
 

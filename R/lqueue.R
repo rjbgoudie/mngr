@@ -3,24 +3,9 @@ lqueue_job <- function(task){
   task_obj <- job_env$joblist[[id]]
   path <- normalizePath(paste0(task$basename, ".R"))
 
-  slurm_log_path <- task$slurm_file(ensure_dir = TRUE)
-
-  queue <- task_env$config$queue %||% "sand"
-
   # if any shared arms, then depend on all prereqs, not just the matching
   # index
   dependency <- task_obj$jobid_prereqs()
-
-  memory <- task_obj$get_memory()
-  cores <- task_obj$get_cores()
-
-  dependency <- if (!is.null(dependency) && length(dependency) > 0){
-    paste0("--dependency=afterok:", paste(dependency, collapse = ","), " ")
-  } else {
-    ""
-  }
-
-  run_time <- task_obj$predict_run_time()
 
   r_log_specific_path <- task$r_log_specific_file(ensure_dir = TRUE)
   r_log_latest_path <- task$r_log_latest_file(ensure_dir = TRUE)
@@ -32,24 +17,18 @@ lqueue_job <- function(task){
                   task$arm_index,
                   "\"", path,
                   r_log_latest_path)
-  # need to mirror logs to
-  #  " MNGR_RLOGLATESTFILE=", r_log_latest_path,
+  # need to mirror logs to r_log_specific_path too
 
   jobid <- lqueue_add(list(incant = incant,
                            dependency = task_obj$jobid_prereqs(),
                            started = FALSE,
                            finished = FALSE))
   time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
-  message(time, " Submitted ", task$name, " (", jobid, ")",
-          " Run time prediction ", paste(run_time, collapse = ":"))
-  ## cat(incant)
+  message(time, " Submitted ", task$name, " (", jobid, ")")
 
   task$set_jobid(jobid)
   slurm_add_jobids(jobid)
 }
-
-
-lqueue_env <- new.env()
 
 #' Add to lqueue
 #'
