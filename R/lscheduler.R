@@ -19,10 +19,8 @@ lscheduler_job <- function(task){
                   r_log_latest_path)
   # need to mirror logs to r_log_specific_path too
 
-  jobid <- lscheduler_add(list(incant = incant,
-                           dependency = task_obj$jobid_prereqs(),
-                           started = FALSE,
-                           finished = FALSE))
+  jobid <- lscheduler_add(incant = incant,
+                          dependency = task_obj$jobid_prereqs())
   time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
   message(time, " Submitted ", task$name, " (", jobid, ")")
 
@@ -34,36 +32,40 @@ lscheduler_job <- function(task){
 #'
 #' @param name job name
 #' @param action a set of expressions
-lscheduler_add <- function(job){
-  lscheduler_env$q <- c(lscheduler_env$q, list(job))
-  jobid <- length(lscheduler_env$q)
+lscheduler_add <- function(incant, dependency){
+  lscheduler_env$incant <- c(lscheduler_env$incant, list(incant))
+  lscheduler_env$started <- c(lscheduler_env$started, FALSE)
+  lscheduler_env$finished <- c(lscheduler_env$finished, FALSE)
+  lscheduler_env$dependency <- c(lscheduler_env$dependency, list(dependency))
+  lscheduler_env$process <- c(lscheduler_env$process, list(NA))
+
+  jobid <- length(lscheduler_env$incant)
   as.character(jobid)
 }
 
 lscheduler_run_next <- function(){
-  q <- lscheduler_env$q
-  started <- sapply(lscheduler_env$q, "[[", "started")
-  start_next <- match(FALSE, started, nomatch = 1)
-  depend <- as.integer(lscheduler_env$q[[start_next]]$dependency)
-  finished <- sapply(lscheduler_env$q, "[[", "finished")
+  start_next <- match(FALSE, lscheduler_env$started, nomatch = 1)
+  depend <- as.integer(lscheduler_env$dependency[[start_next]])
 
-  running <- q[started & !finished]
-  for (i in seq_along(running)){
-    if (!running[[i]]$process$is_alive()){
-      lscheduler_env$q[started & !finished][[i]]$finished <- TRUE
-      finished[started & !finished][i] <- TRUE
+  running <- lscheduler_env$started & !lscheduler_env$finished
+
+  for (i in which(running)){
+    if (!lscheduler_env$process[[i]]$is_alive()){
+      lscheduler_env$finished[i] <- TRUE
     }
   }
 
-  if (all(finished[depend]) & sum(started & !finished) < 2){
-    cat("RUNNING", lscheduler_env$q[[start_next]]$incant, "\n")
-    lscheduler_env$q[[start_next]]$started <- TRUE
-    p <- processx::process$new(commandline = lscheduler_env$q[[start_next]]$incant)
-    lscheduler_env$q[[start_next]][["process"]] <- p
+  running <- lscheduler_env$started & !lscheduler_env$finished
+  dependencies_for_next_are_done <- all(lscheduler_env$finished[depend])
+
+  if (dependencies_for_next_are_done & sum(running) < 2){
+    cat("RUNNING", lscheduler_env$incant[[start_next]], "\n")
+    lscheduler_env$started[start_next] <- TRUE
+    p <- processx::process$new(commandline = lscheduler_env$incant[[start_next]])
+    lscheduler_env$process[[start_next]] <- p
   }
 }
 
 lscheduler_finished <- function(){
-  finished <- sapply(lscheduler_env$q, "[[", "finished")
-  all(finished)
+  all(lscheduler_env$finished)
 }
