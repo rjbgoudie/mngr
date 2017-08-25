@@ -11,87 +11,87 @@ TaskArm <- setRefClass(
   ),
   methods = list(
     invoke = function(debug = FALSE){
-    if (needed(debug = debug)){
-      debug_msg(debug, "Invoking ", taskarm_name)
+      if (needed(debug = debug)){
+        debug_msg(debug, "Invoking ", taskarm_name)
 
-      state_file(ensure_dir = TRUE, create = TRUE)
-      job_create(name = taskarm_name,
-                 basename = task_name,
-                 arm_index = arm_index,
-                 actions = actions,
-                 prereqs = prereqs,
-                 properties = properties)
-    } else {
-      debug_msg(debug, taskarm_name, " not needed")
-    }
-  },
-  needed = function(debug = FALSE){
-    state_file <- state_file(ensure_dir = FALSE, create = FALSE)
-    never_run <- !file.exists(state_file)
+        state_file(ensure_dir = TRUE, create = TRUE)
+        job_create(name = taskarm_name,
+                   basename = task_name,
+                   arm_index = arm_index,
+                   actions = actions,
+                   prereqs = prereqs,
+                   properties = properties)
+      } else {
+        debug_msg(debug, taskarm_name, " not needed")
+      }
+    },
+    needed = function(debug = FALSE){
+      state_file <- state_file(ensure_dir = FALSE, create = FALSE)
+      never_run <- !file.exists(state_file)
 
-    timestamp_newer_than_last_run <- FALSE
-    if (!never_run){
-      last_run_date <- file.info(state_file)$mtime
-      timestamp_newer_than_last_run <- timestamp() > last_run_date
-    }
+      timestamp_newer_than_last_run <- FALSE
+      if (!never_run){
+        last_run_date <- file.info(state_file)$mtime
+        timestamp_newer_than_last_run <- timestamp() > last_run_date
+      }
 
-    prerequisite_run_more_recently <- FALSE
-    most_recent_prereq <- FALSE
-    if (length(prereqs) > 0){
-      prereqs_timestamp <- lapply(prereqs, function(taskarm_name){
-        taskarm_get(taskarm_name, exists = TRUE)$timestamp()
-      })
-      most_recent_prereq <- do.call("max", prereqs_timestamp)
-    }
-    prerequisite_run_more_recently <- most_recent_prereq > timestamp()
+      prerequisite_run_more_recently <- FALSE
+      most_recent_prereq <- FALSE
+      if (length(prereqs) > 0){
+        prereqs_timestamp <- lapply(prereqs, function(taskarm_name){
+          taskarm_get(taskarm_name, exists = TRUE)$timestamp()
+        })
+        most_recent_prereq <- do.call("max", prereqs_timestamp)
+      }
+      prerequisite_run_more_recently <- most_recent_prereq > timestamp()
 
-    # flesh this out
-    build_all <- FALSE
+      # flesh this out
+      build_all <- FALSE
 
-    out <- never_run ||
-      timestamp_newer_than_last_run ||
-      prerequisite_run_more_recently ||
-      build_all
+      out <- never_run ||
+        timestamp_newer_than_last_run ||
+        prerequisite_run_more_recently ||
+        build_all
 
-    debug_msg(debug,
-              "Needed status for ", taskarm_name, " is ", out, ". ",
-              "never_run: ", never_run, ". ",
-              "prerequistite_run_more_recently: ", prerequisite_run_more_recently,
-              ". ",
-              "build_all: ", build_all, ".")
-    out
-  },
-  timestamp = function(){
-    state_file <- state_file(ensure_dir = FALSE, create = FALSE)
+      debug_msg(debug,
+                "Needed status for ", taskarm_name, " is ", out, ". ",
+                "never_run: ", never_run, ". ",
+                "prerequistite_run_more_recently: ", prerequisite_run_more_recently,
+                ". ",
+                "build_all: ", build_all, ".")
+      out
+    },
+    timestamp = function(){
+      state_file <- state_file(ensure_dir = FALSE, create = FALSE)
 
-    if (file.exists(state_file)){
-      out <- file.info(state_file)$mtime
-    } else {
-      out <- Sys.time()
-    }
-    if (length(custom_timestamp) > 0){
-      custom <- custom_timestamp[[1]](name = task_name)
-      if (custom > out){
-        out <- custom
+      if (file.exists(state_file)){
+        out <- file.info(state_file)$mtime
+      } else {
+        out <- Sys.time()
+      }
+      if (length(custom_timestamp) > 0){
+        custom <- custom_timestamp[[1]](name = task_name)
+        if (custom > out){
+          out <- custom
+        }
+      }
+      out
+    },
+    state_file = function(ensure_dir = TRUE, create = FALSE){
+      state_fun <- task_env$config$state
+      state_dir <- state_fun(normalizePath(".", winslash = "/"))
+
+      if (ensure_dir){
+        ensure_exists(state_dir)
+      }
+      state_file <- paste0(state_dir, "/", taskarm_name)
+
+      if (create){
+        file.create(state_file)
+      } else {
+        state_file
       }
     }
-    out
-  },
-  state_file = function(ensure_dir = TRUE, create = FALSE){
-    state_fun <- task_env$config$state
-    state_dir <- state_fun(normalizePath(".", winslash = "/"))
-
-    if (ensure_dir){
-      ensure_exists(state_dir)
-    }
-    state_file <- paste0(state_dir, "/", taskarm_name)
-
-    if (create){
-      file.create(state_file)
-    } else {
-      state_file
-    }
-  }
   )
 )
 

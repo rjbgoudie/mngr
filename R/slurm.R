@@ -46,10 +46,10 @@ slurm_r_job <- function(task){
   time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
   message(time, " Submitted ", task$name, " (", jobid, ")",
           " Run time prediction ", paste(run_time, collapse = ":"))
-## cat(incant)
+  ## cat(incant)
 
-task$set_jobid(jobid)
-slurm_add_jobids(jobid)
+  task$set_jobid(jobid)
+  slurm_add_jobids(jobid)
 }
 
 #' Add Job ID to list of Job IDs
@@ -84,111 +84,111 @@ SlurmJob <- setRefClass(
   ),
   methods = list(
     slurm_file = function(ensure_dir = TRUE){
-    slurm_log_fun <- task_env$config$slurm_logs
-    slurm_log_dir <- slurm_log_fun(normalizePath("."), winslash = "/")
+      slurm_log_fun <- task_env$config$slurm_logs
+      slurm_log_dir <- slurm_log_fun(normalizePath("."), winslash = "/")
 
-    if (ensure_dir){
-      ensure_exists(slurm_log_dir)
-    }
-
-    slurm_log_file <- paste0("%A.%a-", name, ".txt")
-    file.path(slurm_log_dir, slurm_log_file)
-  },
-  execute = function(debug = FALSE){
-    action_class <- sapply(actions, class)
-    lapply(actions[action_class == "{"], eval.parent)
-    lapply(actions[action_class == "call"], function(action){
-      eval(action)(.self)
-    })
-    lapply(actions[action_class == "function"], function(action){
-      action(.self)
-    })
-  },
-  set_jobid = function(x){
-    jobid <<- x
-  },
-  jobid_prereqs = function(){
-    out <- c()
-    if (length(prereqs) > 0){
-      out <- unlist(sapply(prereqs, function(name){
-        id <- job_find_id(name)
-        if (!is.null(id)){
-          parent <- job_env$joblist[[id]]$jobid
-        } else {
-          c()
-        }
-      }))
-    }
-    out
-  },
-  get_memory = function(){
-    if (length(properties$memory) > 0){
-      properties$memory
-    } else {
-      3840 #3993
-    }
-  },
-  get_cores = function(){
-    if (length(properties$cores) > 0){
-      properties$cores
-    } else {
-      1
-    }
-  },
-  last_run_time = function(){
-    path <- r_log_latest_file(ensure_dir = FALSE)
-    if (file.exists(path)){
-      run_time(path)
-    } else {
-      NULL
-    }
-  },
-  predict_run_time = function(){
-    if (length(properties$hours) > 0){
-      sprintf("%d:00:00", properties$hours)
-    } else {
-      last <- last_run_time()
-      if (!is.null(last)){
-        multiply <- 2
-        extra <- 10
-        overflow3 <- (multiply * last[3]) %/% 60
-        last[3] <- (multiply * last[3]) %% 60
-        overflow2 <- (multiply * last[2] + overflow3 + extra) %/% 60
-        last[2] <- (multiply * last[2] + overflow3 + extra) %% 60
-        overflow1 <- (multiply * last[1] + overflow2) %/% 60
-        last[1] <- (multiply * last[1] + overflow2) %% 60
-        args <- c("%d:%02d:%02d", as.list(last))
-        do.call("sprintf", args)
-      } else {
-        "01:00:00"
+      if (ensure_dir){
+        ensure_exists(slurm_log_dir)
       }
-    }
-  },
-  r_log_latest_file = function(ensure_dir = TRUE){
-    r_log_fun <- task_env$config$r_logs
-    r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
-    r_log_latest_dir <- paste0(r_log_dir, "-latest/")
 
-    if (ensure_dir){
-      ensure_exists(r_log_latest_dir)
-    }
-    r_log_latest_file <- paste0(name, ".Rout")
-    file.path(r_log_latest_dir, r_log_latest_file)
-  },
-  r_log_specific_file = function(ensure_dir = TRUE){
-    r_log_fun <- task_env$config$r_logs
-    r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
+      slurm_log_file <- paste0("%A.%a-", name, ".txt")
+      file.path(slurm_log_dir, slurm_log_file)
+    },
+    execute = function(debug = FALSE){
+      action_class <- sapply(actions, class)
+      lapply(actions[action_class == "{"], eval.parent)
+      lapply(actions[action_class == "call"], function(action){
+        eval(action)(.self)
+      })
+      lapply(actions[action_class == "function"], function(action){
+        action(.self)
+      })
+    },
+    set_jobid = function(x){
+      jobid <<- x
+    },
+    jobid_prereqs = function(){
+      out <- c()
+      if (length(prereqs) > 0){
+        out <- unlist(sapply(prereqs, function(name){
+          id <- job_find_id(name)
+          if (!is.null(id)){
+            parent <- job_env$joblist[[id]]$jobid
+          } else {
+            c()
+          }
+        }))
+      }
+      out
+    },
+    get_memory = function(){
+      if (length(properties$memory) > 0){
+        properties$memory
+      } else {
+        3840 #3993
+      }
+    },
+    get_cores = function(){
+      if (length(properties$cores) > 0){
+        properties$cores
+      } else {
+        1
+      }
+    },
+    last_run_time = function(){
+      path <- r_log_latest_file(ensure_dir = FALSE)
+      if (file.exists(path)){
+        run_time(path)
+      } else {
+        NULL
+      }
+    },
+    predict_run_time = function(){
+      if (length(properties$hours) > 0){
+        sprintf("%d:00:00", properties$hours)
+      } else {
+        last <- last_run_time()
+        if (!is.null(last)){
+          multiply <- 2
+          extra <- 10
+          overflow3 <- (multiply * last[3]) %/% 60
+          last[3] <- (multiply * last[3]) %% 60
+          overflow2 <- (multiply * last[2] + overflow3 + extra) %/% 60
+          last[2] <- (multiply * last[2] + overflow3 + extra) %% 60
+          overflow1 <- (multiply * last[1] + overflow2) %/% 60
+          last[1] <- (multiply * last[1] + overflow2) %% 60
+          args <- c("%d:%02d:%02d", as.list(last))
+          do.call("sprintf", args)
+        } else {
+          "01:00:00"
+        }
+      }
+    },
+    r_log_latest_file = function(ensure_dir = TRUE){
+      r_log_fun <- task_env$config$r_logs
+      r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
+      r_log_latest_dir <- paste0(r_log_dir, "-latest/")
 
-    if (ensure_dir){
-      ensure_exists(r_log_dir)
+      if (ensure_dir){
+        ensure_exists(r_log_latest_dir)
+      }
+      r_log_latest_file <- paste0(name, ".Rout")
+      file.path(r_log_latest_dir, r_log_latest_file)
+    },
+    r_log_specific_file = function(ensure_dir = TRUE){
+      r_log_fun <- task_env$config$r_logs
+      r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
+
+      if (ensure_dir){
+        ensure_exists(r_log_dir)
+      }
+      r_log_latest_file <- paste0(name, ".Rout")
+      r_log_specific_file <- paste0("\\${SLURM_JOB_ID}__", r_log_latest_file)
+      file.path(r_log_dir, r_log_specific_file)
+    },
+    jobname = function(){
+      paste(name, git_short_sha(), sep = "__")
     }
-    r_log_latest_file <- paste0(name, ".Rout")
-    r_log_specific_file <- paste0("\\${SLURM_JOB_ID}__", r_log_latest_file)
-    file.path(r_log_dir, r_log_specific_file)
-  },
-  jobname = function(){
-    paste(name, git_short_sha(), sep = "__")
-  }
   )
 )
 
