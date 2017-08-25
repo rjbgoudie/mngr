@@ -61,7 +61,9 @@ lscheduler_run_next <- function(){
   if (dependencies_for_next_are_done & sum(running) < 2){
     cat("RUNNING", lscheduler_env$incant[[start_next]], "\n")
     lscheduler_env$started[start_next] <- TRUE
-    p <- processx::process$new(commandline = lscheduler_env$incant[[start_next]])
+    incant <- lscheduler_env$incant[[start_next]]
+    p <- processx::process$new(commandline = incant,
+                               windows_verbatim_args = TRUE)
     lscheduler_env$process[[start_next]] <- p
   }
 }
