@@ -20,7 +20,7 @@ with_dir <- function(dir,  expr){
 #' @export
 sub_path <- function(pattern, replacement, dir){
   function(path){
-    path <- normalizePath(path, mustWork = FALSE)
+    path <- normalizePath(path, mustWork = FALSE, winslash = "/")
     out <- sub(pattern = pattern,
                replacement = replacement,
                x = path)

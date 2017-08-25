@@ -1,7 +1,7 @@
 lscheduler_job <- function(task){
   id <- job_find_id(task$name, exists = TRUE)
   task_obj <- job_env$joblist[[id]]
-  path <- normalizePath(paste0(task$basename, ".R"))
+  path <- normalizePath(paste0(task$basename, ".R"), winslash = "/")
 
   # if any shared arms, then depend on all prereqs, not just the matching
   # index

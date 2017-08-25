@@ -105,7 +105,7 @@ run <- function(name = "default", debug = FALSE){
 
     # this is the wrong place for this
     r_log_fun <- task_env$config$r_logs
-    r_log_path <- r_log_fun(normalizePath("."))
+    r_log_path <- r_log_fun(normalizePath(".", winslash = "/"))
 
     invisible(TRUE)
   })

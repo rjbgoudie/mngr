@@ -1,7 +1,7 @@
 slurm_r_job <- function(task){
   id <- job_find_id(task$name, exists = TRUE)
   task_obj <- job_env$joblist[[id]]
-  path <- normalizePath(paste0(task$basename, ".R"))
+  path <- normalizePath(paste0(task$basename, ".R"), winslash = "/")
 
   slurm_log_path <- task$slurm_file(ensure_dir = TRUE)
 
@@ -85,7 +85,7 @@ SlurmJob <- setRefClass(
   methods = list(
     slurm_file = function(ensure_dir = TRUE){
     slurm_log_fun <- task_env$config$slurm_logs
-    slurm_log_dir <- slurm_log_fun(normalizePath("."))
+    slurm_log_dir <- slurm_log_fun(normalizePath("."), winslash = "/")
 
     if (ensure_dir){
       ensure_exists(slurm_log_dir)
@@ -166,7 +166,7 @@ SlurmJob <- setRefClass(
   },
   r_log_latest_file = function(ensure_dir = TRUE){
     r_log_fun <- task_env$config$r_logs
-    r_log_dir <- r_log_fun(normalizePath("."))
+    r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
     r_log_latest_dir <- paste0(r_log_dir, "-latest/")
 
     if (ensure_dir){
@@ -177,7 +177,7 @@ SlurmJob <- setRefClass(
   },
   r_log_specific_file = function(ensure_dir = TRUE){
     r_log_fun <- task_env$config$r_logs
-    r_log_dir <- r_log_fun(normalizePath("."))
+    r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
 
     if (ensure_dir){
       ensure_exists(r_log_dir)

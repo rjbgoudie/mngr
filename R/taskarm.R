@@ -79,7 +79,7 @@ TaskArm <- setRefClass(
   },
   state_file = function(ensure_dir = TRUE, create = FALSE){
     state_fun <- task_env$config$state
-    state_dir <- state_fun(normalizePath("."))
+    state_dir <- state_fun(normalizePath(".", winslash = "/"))
 
     if (ensure_dir){
       ensure_exists(state_dir)

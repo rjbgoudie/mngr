@@ -14,7 +14,7 @@ file_path <- function(file,
                       extension = "",
                       splitting = FALSE){
   output_fun <- task_env$config$output
-  np <- normalizePath(".")
+  np <- normalizePath(".", winslash = "/")
   pre <- output_fun(run_dir())
 
   directory <- ifelse(directory == "", "", paste0(directory, "/"))

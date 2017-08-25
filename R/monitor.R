@@ -119,7 +119,7 @@ latest_logs <- function(){
     mngrfile <- find_mngrfile(getwd())
     source(mngrfile)
     r_log_fun <- task_env$config$r_logs
-    r_log_dir <- r_log_fun(normalizePath("."))
+    r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
     r_log_latest_dir <- paste0(r_log_dir, "-latest/")
 
     r_log_latest_file <- "*.Rout"
