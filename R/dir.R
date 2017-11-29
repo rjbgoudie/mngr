@@ -74,15 +74,15 @@ run_git_toplevel_dir <- function(dir = getwd(), check = TRUE){
 
     # FIXME This is a short-term fix
     home <- if (.Platform$OS.type == "windows"){
-      "H:"
+      paste0(strsplit(dir, ":")[[1]][1], ":/")
     } else {
       Sys.getenv("HOME")
     }
 
     git_toplevel_from_home <- rel_path(dir = git_toplevel, start = home)
-    file.path(home, "run", git_toplevel_from_home, git_abbrev_ref)
+    normalizePath(file.path(home, "run", git_toplevel_from_home, git_abbrev_ref))
   } else {
-    git_toplevel
+    normalizePath(git_toplevel)
   }
 }
 
