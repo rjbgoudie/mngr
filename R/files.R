@@ -21,9 +21,9 @@ file_path <- function(file,
   arm <- paste0(arm, "/")
   extension <- ifelse(extension == "", "", paste0(".", extension))
 
-  path_directory <- paste0(pre, directory, arm)
+  path_directory <- file.path(pre, directory, arm)
   ensure_exists(path_directory)
-  paste0(path_directory, file, extension)
+  file.path(path_directory, paste0(file, extension))
 }
 
 #' path to rds file

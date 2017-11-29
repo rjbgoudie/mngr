@@ -106,5 +106,5 @@ run_dir <- function(dir = getwd(), check = TRUE){
   git_toplevel <- git_toplevel_dir(dir = dir, check = FALSE)
   dir_from_git_toplevel <- rel_path(dir = dir, start = git_toplevel)
   run_git_toplevel_dir <- run_git_toplevel_dir(check = FALSE)
-  paste0(run_git_toplevel_dir, "/", dir_from_git_toplevel)
+  file.path(run_git_toplevel_dir, dir_from_git_toplevel)
 }
