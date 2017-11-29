@@ -82,6 +82,7 @@ run <- function(name = "default", debug = FALSE){
   }
 
   suppressWarnings({
+    system("git update-index --refresh", intern = TRUE)
     clean <- system("git diff-index --quiet HEAD --", intern = TRUE)
   })
   if (!is.null(attributes(clean)$status) && attributes(clean)$status == 1){
