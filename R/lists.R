@@ -8,7 +8,7 @@ parse_name <- function(x, type = "rout"){
   nmatches <- length(matches)
   min_matches <- switch(type,
                         `rout` = 2,
-                        `rlatest` = 2,
+                        `rlatest` = 1,
                         `squeue` = 2)
   # a valid job name has at least 2 __
   if (nmatches >= min_matches){
