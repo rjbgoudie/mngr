@@ -75,7 +75,7 @@ TaskArm <- setRefClass(
           out <- custom
         }
       }
-      out
+      as.POSIXct(out)
     },
     state_file = function(ensure_dir = TRUE, create = FALSE){
       state_fun <- task_env$config$state
