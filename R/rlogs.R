@@ -2,16 +2,16 @@
 #'
 #' @param log the log file
 count_rout_warnings <- function(log){
-  cmd <- paste('grep -c -i "^Warning"', log)
-  suppressWarnings(system(cmd, intern = TRUE))
+  matches <- grep("^Warning", readLines(log))
+  length(matches)
 }
 
 #' Count errors in file
 #'
 #' @param log the log file
 count_rout_errors <- function(log){
-  cmd <- paste('grep -c -i "^Error"', log)
-  suppressWarnings(system(cmd, intern = TRUE))
+  matches <- grep("^Error", readLines(log))
+  length(matches)
 }
 
 #' Parse .Rout files to a data frame
