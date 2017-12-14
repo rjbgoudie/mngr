@@ -117,7 +117,7 @@ system_in_dir <- function(command, dir, ...){
 #' @param path Path to the file
 #' @return A character vector of length 1 containing the last line of file
 file_last_line <- function(path){
-  out <- system(paste("tail -n 1 ", path, " | sed '2d' $1"), intern = TRUE)
+  out <- tail(readLines(path), 1)
   # if the last line is very long, R splits it into pieces
   out <- paste(out, collapse = "")
 
