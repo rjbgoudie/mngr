@@ -85,7 +85,7 @@ SlurmJob <- setRefClass(
   methods = list(
     slurm_file = function(ensure_dir = TRUE){
       slurm_log_fun <- task_env$config$slurm_logs
-      slurm_log_dir <- slurm_log_fun(normalizePath("."), winslash = "/")
+      slurm_log_dir <- slurm_log_fun(normalizePath(".", winslash = "/"))
 
       if (ensure_dir){
         ensure_exists(slurm_log_dir)
