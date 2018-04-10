@@ -117,7 +117,9 @@ squeue <- function(jobs = NULL,
 latest_logs <- function(){
   with_dir(run_dir(check = TRUE), {
     mngrfile <- find_mngrfile(getwd())
+    mngr_config(pause_loading = TRUE)
     source(mngrfile)
+    mngr_config(pause_loading = FALSE)
     r_log_fun <- task_env$config$r_logs
     r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
     r_log_latest_dir <- paste0(r_log_dir, "-latest/")

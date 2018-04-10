@@ -40,20 +40,23 @@ task_create <- function(name, action){
 #' @author RJB Goudie
 #' @export
 `%task%` <- task <- function(name, action){
-  expr <- substitute(name)
-  action <- substitute(action)
-  if (is.name(expr)){
-    name <- as.character(expr)
+  pause_loading <- task_env$config$pause_loading %||% FALSE
+  if (!pause_loading){
+    expr <- substitute(name)
+    action <- substitute(action)
+    if (is.name(expr)){
+      name <- as.character(expr)
+    }
+    if (task_exists(name)){
+      message("already exists")
+    } else {
+      task_create(name, action)
+    }
+    # this is inefficient for newly created
+    task_obj <- task_get(name, exists = TRUE)
+    task_obj$enhance(actions_new = action)
+    invisible(a)
   }
-  if (task_exists(name)){
-    message("already exists")
-  } else {
-    task_create(name, action)
-  }
-  # this is inefficient for newly created
-  task_obj <- task_get(name, exists = TRUE)
-  task_obj$enhance(actions_new = action)
-  invisible(a)
 }
 
 #' Set up task dependencies
