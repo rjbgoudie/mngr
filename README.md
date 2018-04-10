@@ -42,6 +42,21 @@ git repository) from $HOME/path/to/analysis to $HOME/run/path/to/analysis -
 this allows further edits to be made whilst a task is running
 
 
+File locations and paths
+------------------------
+
+There are several file locations relevant to mngr:
+
+1. Where the actual R files are stored, which must be within a git repository
+2. Where the R files will be _run_ from: mngr checks out the git repository to
+   a separate location, when running the analysis, so that the original working
+   copy of the R files can be edited while the original analysis is running,
+   without changing what runs.
+3. The "results" location: this is where all of the plots, rds files, and logs
+   are stored. You may wish for this to on a separate drive to the R source,
+   since the output may be large and can be reproduced, so you might not need to
+   back the results up so carefully.
+
 Installation
 ------------
 
