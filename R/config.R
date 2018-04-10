@@ -16,11 +16,14 @@ mngr_config <- function(...){
 }
 
 mngr_option_run_path <- function(){
-  run_path_fun <- getOption("mngr_run_path")
+  default <- function(dir){
+    file.path(Sys.getenv("HOME"), "run")
+  }
+  getOption("mngr_run_path") %||% default
 }
 
 mngr_option_use_tempfile <- function(){
-  getOption("mngr_use_tempfile")
+  getOption("mngr_use_tempfile") %||% FALSE
 }
 
 mngr_option_cluster_path <- function(){
