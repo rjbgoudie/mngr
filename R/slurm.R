@@ -40,7 +40,7 @@ slurm_r_job <- function(task){
            " --nodes=1",
            " --time=", run_time,
            " --output=", slurm_log_path,
-           " ", getOption("mngr_cluster_path"), "/mngr_slurm_submit.", queue,
+           " ", mngr_option_cluster_path(), "/mngr_slurm_submit.", queue,
            "\n")
   jobid <- system(incant, intern = TRUE)
   time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")

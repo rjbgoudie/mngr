@@ -67,7 +67,7 @@ run_git_toplevel_dir <- function(dir = getwd(), check = TRUE){
     stopifnot(is_inside_git_work_tree(dir))
   }
 
-  run_path_fun <- getOption("mngr_run_path")
+  run_path_fun <- mngr_option_run_path()
   run_path <- run_path_fun(normalizePath(dir, winslash = "/"))
 
   git_toplevel <- git_toplevel_dir(dir = dir, check = FALSE)

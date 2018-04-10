@@ -25,23 +25,6 @@ lscheduler_env <- new.env()
 # This is the default maximum number of tasks that can run at once
 mngr_default_throttle <- 100
 
-#' Set configuration options for mngr
-#'
-#' The current options are:
-#' - queue: the Slurm queue to submit to
-#' - output: where the main output should go
-#' - r_logs: where the R logs should be stored
-#' - slurm_logs: where the Slurm logs should be stored
-#' - throttle: the maximum number of tasks that can run at once
-#'
-#' @param ... a list of values to replace default config
-#' @export
-mngr_config <- function(...){
-  # this implementation is rubbish
-  elements <- list(...)
-  assign("config", elements, envir = task_env)
-}
-
 #' Find Mngrfile
 #'
 #' Find the Mngrfile in the supplied directory or the parent directory

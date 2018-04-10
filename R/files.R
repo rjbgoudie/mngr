@@ -76,7 +76,7 @@ save <- function(..., file){
 #' @param ... passed to default save
 #' @export
 saveRDS <- function(..., file){
-  if (isTRUE(getOption("mngr_use_tempfile"))){
+  if (isTRUE(mngr_option_use_tempfile())){
     temp_file <- tempfile()
     base:::saveRDS(..., file = temp_file)
     file.rename(from = temp_file,
@@ -84,7 +84,7 @@ saveRDS <- function(..., file){
   } else {
     unlink(file)
     base:::saveRDS(..., file = file)
-}
+  }
 }
 
 #' pdf device
