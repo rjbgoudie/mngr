@@ -43,8 +43,7 @@ git_toplevel_dir <- function(dir = getwd(), check = TRUE){
 #' @return A logical vector indicating whether the directory starts with
 #' $HOME/run
 is_run_dir <- function(dir = getwd()){
-  home <- Sys.getenv("HOME")
-  pattern <- paste0("^", home, "/run")
+  pattern <- paste0("run")
   grepl(pattern, dir)
 }
 
@@ -68,19 +67,15 @@ run_git_toplevel_dir <- function(dir = getwd(), check = TRUE){
     stopifnot(is_inside_git_work_tree(dir))
   }
 
+  run_path_fun <- getOption("mngr_run_path")
+  run_path <- run_path_fun(normalizePath(dir, winslash = "/"))
+
   git_toplevel <- git_toplevel_dir(dir = dir, check = FALSE)
   if (!is_run_dir(dir)){
     git_abbrev_ref <- git_abbrev_ref(dir = dir, base_only = TRUE)
+    git_toplevel_name <- basename(git_toplevel)
 
-    # FIXME This is a short-term fix
-    home <- if (.Platform$OS.type == "windows"){
-      paste0(strsplit(dir, ":")[[1]][1], ":/")
-    } else {
-      Sys.getenv("HOME")
-    }
-
-    git_toplevel_from_home <- rel_path(dir = git_toplevel, start = home)
-    normalizePath(file.path(home, "run", git_toplevel_from_home, git_abbrev_ref))
+    normalizePath(file.path(run_path, git_toplevel_name, git_abbrev_ref))
   } else {
     normalizePath(git_toplevel)
   }
