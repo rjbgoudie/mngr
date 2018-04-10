@@ -86,7 +86,7 @@ run <- function(name = "default", debug = FALSE){
     clean <- system("git diff-index --quiet HEAD --", intern = TRUE)
   })
   if (!is.null(attributes(clean)$status) && attributes(clean)$status == 1){
-    stop(clean)
+    warning("Not cloning a clean respository:", clean)
   }
   git_clone_or_pull()
 
@@ -95,9 +95,9 @@ run <- function(name = "default", debug = FALSE){
     mngrfile <- find_mngrfile(getwd())
     source(mngrfile)
 
-    expr <- substitute(name)
-    if (is.name(expr)){
-      name <- as.character(expr)
+    name_expr <- substitute(name)
+    if (is.name(name_expr)){
+      name <- as.character(name_expr)
     }
     task_obj <- task_get(name)
     lapply(task_env$post_run_list, eval)
