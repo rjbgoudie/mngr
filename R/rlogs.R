@@ -2,7 +2,7 @@
 #'
 #' @param log the log file
 count_rout_warnings <- function(log){
-  matches <- grep("^Warning", readLines(log))
+  matches <- grep("^Warning", readLines(log, warn = FALSE))
   length(matches)
 }
 
@@ -10,7 +10,7 @@ count_rout_warnings <- function(log){
 #'
 #' @param log the log file
 count_rout_errors <- function(log){
-  matches <- grep("^Error", readLines(log))
+  matches <- grep("^Error", readLines(log, warn = FALSE))
   length(matches)
 }
 
