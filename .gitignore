@@ -3,3 +3,5 @@
 .RData
 NAMESPACE
 man/*
+mngr.Rproj
+.Rbuildignore
