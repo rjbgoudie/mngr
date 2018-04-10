@@ -32,7 +32,9 @@ TaskArm <- setRefClass(
       timestamp_newer_than_last_run <- FALSE
       if (!never_run){
         last_run_date <- file.info(state_file)$mtime
-        timestamp_newer_than_last_run <- timestamp() > last_run_date
+        ts <- timestamp()
+        debug_msg(debug, "lastrundate:", last_run_date, ". timestamp: ", ts)
+        timestamp_newer_than_last_run <- ts > last_run_date
       }
 
       prerequisite_run_more_recently <- FALSE
@@ -88,6 +90,7 @@ TaskArm <- setRefClass(
 
       if (create){
         file.create(state_file)
+        Sys.setFileTime(state_file, Sys.time())
       } else {
         state_file
       }
