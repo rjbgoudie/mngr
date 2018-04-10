@@ -12,7 +12,8 @@
 mngr_config <- function(...){
   # this implementation is rubbish
   elements <- list(...)
-  assign("config", elements, envir = task_env)
+  new <- modifyList(as.list(task_env$config), elements)
+  assign("config", new, envir = task_env)
 }
 
 mngr_option_run_path <- function(){
