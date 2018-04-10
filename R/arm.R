@@ -108,5 +108,9 @@ read_rds_merge <- function(...){
   all_paths <- sapply(all_arms, function(x){
     rds_file(..., arm = x)
   })
+  paths_exist <- file.exists(all_paths)
+  if (!all(paths_exist)){
+    message("The following paths don't exist:", all_paths[!paths_exist])
+  }
   lapply(all_paths, readRDS)
 }
