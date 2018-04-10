@@ -221,7 +221,12 @@ job_find_id <- function(name, exists = job_exists(name)){
 #' @param name job name
 #' @param action a set of expressions
 job_create <- function(name, ...){
-  job <- SlurmJob(name = name, ...)
+  scheduler <- task_env$config$scheduler %||% "slurm"
+  if (scheduler == "slurm"){
+    job <- SlurmJob(name = name, ...)
+  } else if (scheduler == "local"){
+    job <- LSchedulerJob(name = name, ...)
+  }
   job_env$joblist <- c(job_env$joblist, list(job))
   names(job_env$joblist)[length(job_env$joblist)] <- name
 }

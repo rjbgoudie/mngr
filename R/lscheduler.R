@@ -116,3 +116,79 @@ lscheduler_kill_all <- function(){
     p$kill()
   })
 }
+
+LSchedulerJob <- setRefClass(
+  "LSchedulerJob",
+  fields = list(
+    name = "character",
+    basename = "character",
+    arm_index = "integer",
+    actions = "list",
+    prereqs = "character",
+    jobid = "character",
+    prereq_jobids = "character",
+    properties = "list"
+  ),
+  methods = list(
+    execute = function(debug = FALSE){
+      action_class <- sapply(actions, class)
+      lapply(actions[action_class == "{"], eval.parent)
+      lapply(actions[action_class == "call"], function(action){
+        eval(action)(.self)
+      })
+      lapply(actions[action_class == "function"], function(action){
+        action(.self)
+      })
+    },
+    set_jobid = function(x){
+      jobid <<- x
+    },
+    jobid_prereqs = function(){
+      out <- c()
+      if (length(prereqs) > 0){
+        out <- unlist(sapply(prereqs, function(name){
+          id <- job_find_id(name)
+          if (!is.null(id)){
+            parent <- job_env$joblist[[id]]$jobid
+          } else {
+            c()
+          }
+        }))
+      }
+      out
+    },
+    last_run_time = function(){
+      path <- r_log_latest_file(ensure_dir = FALSE)
+      if (file.exists(path)){
+        run_time(path)
+      } else {
+        NULL
+      }
+    },
+    r_log_latest_file = function(ensure_dir = TRUE){
+      r_log_fun <- task_env$config$r_logs
+      r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
+      r_log_latest_dir <- paste0(r_log_dir, "-latest/")
+
+      if (ensure_dir){
+        ensure_exists(r_log_latest_dir)
+      }
+      r_log_latest_file <- paste0(name, ".Rout")
+      file.path(r_log_latest_dir, r_log_latest_file)
+    },
+    r_log_specific_file = function(ensure_dir = TRUE){
+      r_log_fun <- task_env$config$r_logs
+      r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
+
+      if (ensure_dir){
+        ensure_exists(r_log_dir)
+      }
+      r_log_latest_file <- paste0(name, ".Rout")
+      r_log_specific_file <- paste0(jobid, "__", r_log_latest_file)
+      file.path(r_log_dir, r_log_specific_file)
+    },
+    jobname = function(){
+      paste(name, git_short_sha(), sep = "__")
+    }
+  )
+)
