@@ -121,9 +121,20 @@ run <- function(name = "default", debug = FALSE){
 
   scheduler <- task_env$config$scheduler %||% "slurm"
   if (scheduler == "local"){
-    while (!lscheduler_finished()){
-      lscheduler_run_next()
-      Sys.sleep(2)
-    }
+    on.exit(lscheduler_kill_all)
+    tryCatch({
+      while (!lscheduler_finished()){
+        lscheduler_run_next()
+        cat(lscheduler_number_running(), " running; started ", lscheduler_started(), " tasks out of ", lscheduler_total(), "\n")
+        latest_logs()
+        Sys.sleep(2)
+      }
+      latest_logs()
+    },
+    interrupt = function(interrupt){
+      cat("Interrupted - killing all child proccesses\n")
+      lscheduler_kill_all()
+      cat("Killed all child processes\n")
+    })
   }
 }
