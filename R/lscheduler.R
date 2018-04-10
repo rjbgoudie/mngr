@@ -7,24 +7,40 @@ lscheduler_job <- function(task){
   # index
   dependency <- task_obj$jobid_prereqs()
 
+  jobid <- lscheduler_jobid()
+  task$set_jobid(jobid)
+
   r_log_specific_path <- task$r_log_specific_file(ensure_dir = TRUE)
   r_log_latest_path <- task$r_log_latest_file(ensure_dir = TRUE)
   r_log_path <<- r_log_specific_path
 
-  incant <- paste("R CMD BATCH --no-save --no-restore --no-timing",
-                  "\"--args -1",
-                  task$basename,
-                  task$arm_index,
-                  "\"", path,
-                  r_log_latest_path)
-  # need to mirror logs to r_log_specific_path too
+  if (have_tee()){
+    incant <- paste("cat",
+                    path,
+                    "| R --no-save --no-restore",
+                    "\"--args -1",
+                    task$basename,
+                    task$arm_index,
+                    "\"",
+                    "2>&1 | tee",
+                    r_log_specific_path,
+                    r_log_latest_path)
+  } else {
+    incant <- paste("R CMD BATCH --no-save --no-restore --no-timing",
+                    "\"--args -1",
+                    task$basename,
+                    task$arm_index,
+                    "\"", path,
+                    r_log_latest_path)
+    # need to mirror logs to r_log_specific_path too
+  }
 
   jobid <- lscheduler_add(incant = incant,
-                          dependency = task_obj$jobid_prereqs())
+                          dependency = task_obj$jobid_prereqs(),
+                          jobid = jobid)
   time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
   message(time, " Submitted ", task$name, " (", jobid, ")")
 
-  task$set_jobid(jobid)
   slurm_add_jobids(jobid)
 }
 
@@ -36,8 +52,7 @@ lscheduler_jobid <- function(){
 #'
 #' @param name job name
 #' @param action a set of expressions
-lscheduler_add <- function(incant, dependency){
-  jobid <- lscheduler_jobid()
+lscheduler_add <- function(incant, dependency, jobid){
   lscheduler_env$incant <- c(lscheduler_env$incant, list(incant))
   lscheduler_env$started <- c(lscheduler_env$started, FALSE)
   lscheduler_env$finished <- c(lscheduler_env$finished, FALSE)

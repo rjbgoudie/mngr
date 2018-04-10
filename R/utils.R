@@ -195,3 +195,7 @@ set_terminal_width <- function(width){
 get_terminal_width <- function(){
   as.numeric(Sys.getenv("COLUMNS"))
 }
+
+have_tee <- function(){
+  Sys.which("tee") != ""
+}
