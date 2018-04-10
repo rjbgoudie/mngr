@@ -11,7 +11,7 @@ lscheduler_job <- function(task){
   r_log_latest_path <- task$r_log_latest_file(ensure_dir = TRUE)
   r_log_path <<- r_log_specific_path
 
-  incant <- paste("R CMD BATCH --no-save --no-restore",
+  incant <- paste("R CMD BATCH --no-save --no-restore --no-timing",
                   "\"--args -1",
                   task$basename,
                   task$arm_index,
