@@ -42,7 +42,7 @@ monitor <- function(jobs = NULL, logs = NULL, width = NULL){
   have_rout <- !is.null(rout_df) && nrow(rout_df) > 0
 
   if (!have_rout & !have_squeue_status){
-    message("No jobs submitted")
+    message("No jobs to monitor")
   } else if (!have_rout & have_squeue_status){
     pretty_print_squeue(squeue_status)
   } else if (have_rout & !have_squeue_status){
