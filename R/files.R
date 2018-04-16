@@ -22,7 +22,7 @@ file_path <- function(file,
   extension <- ifelse(extension == "", "", paste0(".", extension))
 
   path_directory <- file.path(pre, directory, arm)
-  ensure_exists(path_directory)
+  fs::dir_create(path_directory)
   file.path(path_directory, paste0(file, extension))
 }
 

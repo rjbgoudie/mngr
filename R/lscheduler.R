@@ -10,8 +10,8 @@ lscheduler_job <- function(task){
   jobid <- lscheduler_jobid()
   task$set_jobid(jobid)
 
-  r_log_specific_path <- task$r_log_specific_file(ensure_dir = TRUE)
-  r_log_latest_path <- task$r_log_latest_file(ensure_dir = TRUE)
+  r_log_specific_path <- task$r_log_specific_file()
+  r_log_latest_path <- task$r_log_latest_file()
   r_log_path <<- r_log_specific_path
 
   if (have_tee()){
@@ -173,37 +173,35 @@ LSchedulerJob <- setRefClass(
       out
     },
     last_run_time = function(){
-      path <- r_log_latest_file(ensure_dir = FALSE)
+      path <- r_log_latest_file()
       if (file.exists(path)){
         run_time(path)
       } else {
         NULL
       }
     },
-    r_log_latest_file = function(ensure_dir = TRUE){
+    r_log_latest_file = function(){
       r_log_fun <- task_env$config$r_logs
       r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
       r_log_latest_dir <- paste0(r_log_dir, "-latest/")
 
-      if (ensure_dir){
-        ensure_exists(r_log_latest_dir)
-      }
+      fs::dir_create(r_log_latest_dir)
       r_log_latest_file <- paste0(name, ".Rout")
       file.path(r_log_latest_dir, r_log_latest_file)
     },
-    r_log_specific_file = function(ensure_dir = TRUE){
+    r_log_specific_file = function(){
       r_log_fun <- task_env$config$r_logs
       r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
 
-      if (ensure_dir){
-        ensure_exists(r_log_dir)
-      }
+
+      fs::dir_create(r_log_dir)
+
       r_log_latest_file <- paste0(name, ".Rout")
       r_log_specific_file <- paste0(jobid, "__", r_log_latest_file)
       file.path(r_log_dir, r_log_specific_file)
     },
     jobname = function(){
       paste(name, git_short_sha(), sep = "__")
-    }
-  )
+  }
+)
 )

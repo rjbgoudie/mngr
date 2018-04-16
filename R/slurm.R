@@ -3,7 +3,7 @@ slurm_r_job <- function(task){
   task_obj <- job_env$joblist[[id]]
   path <- normalizePath(paste0(task$basename, ".R"), winslash = "/")
 
-  slurm_log_path <- task$slurm_file(ensure_dir = TRUE)
+  slurm_log_path <- task$slurm_file()
 
   queue <- task_env$config$queue %||% "sand"
 
@@ -22,8 +22,8 @@ slurm_r_job <- function(task){
 
   run_time <- task_obj$predict_run_time()
 
-  r_log_specific_path <- task$r_log_specific_file(ensure_dir = TRUE)
-  r_log_latest_path <- task$r_log_latest_file(ensure_dir = TRUE)
+  r_log_specific_path <- task$r_log_specific_file()
+  r_log_latest_path <- task$r_log_latest_file()
   r_log_path <<- r_log_specific_path
 
   incant <-
@@ -83,14 +83,11 @@ SlurmJob <- setRefClass(
     properties = "list"
   ),
   methods = list(
-    slurm_file = function(ensure_dir = TRUE){
+    slurm_file = function(){
       slurm_log_fun <- task_env$config$slurm_logs
       slurm_log_dir <- slurm_log_fun(normalizePath(".", winslash = "/"))
 
-      if (ensure_dir){
-        ensure_exists(slurm_log_dir)
-      }
-
+      fs::dir_create(slurm_log_dir)
       slurm_log_file <- paste0("%A.%a-", name, ".txt")
       file.path(slurm_log_dir, slurm_log_file)
     },
@@ -136,7 +133,7 @@ SlurmJob <- setRefClass(
       }
     },
     last_run_time = function(){
-      path <- r_log_latest_file(ensure_dir = FALSE)
+      path <- r_log_latest_file()
       if (file.exists(path)){
         run_time(path)
       } else {
@@ -164,24 +161,23 @@ SlurmJob <- setRefClass(
         }
       }
     },
-    r_log_latest_file = function(ensure_dir = TRUE){
+    r_log_latest_file = function(){
       r_log_fun <- task_env$config$r_logs
       r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
       r_log_latest_dir <- paste0(r_log_dir, "-latest/")
 
-      if (ensure_dir){
-        ensure_exists(r_log_latest_dir)
-      }
+
+      fs::dir_create(r_log_latest_dir)
+
       r_log_latest_file <- paste0(name, ".Rout")
       file.path(r_log_latest_dir, r_log_latest_file)
     },
-    r_log_specific_file = function(ensure_dir = TRUE){
+    r_log_specific_file = function(){
       r_log_fun <- task_env$config$r_logs
       r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
 
-      if (ensure_dir){
-        ensure_exists(r_log_dir)
-      }
+
+      fs:dir_create(r_log_dir)
       r_log_latest_file <- paste0(name, ".Rout")
       r_log_specific_file <- paste0("\\${SLURM_JOB_ID}__", r_log_latest_file)
       file.path(r_log_dir, r_log_specific_file)

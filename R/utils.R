@@ -28,19 +28,6 @@ sub_path <- function(pattern, replacement, dir){
   }
 }
 
-#' Ensure directory exists
-#'
-#' @param dir path to the directory
-ensure_exists <- function(dir){
-  for (x in dir){
-    if (!file.exists(x)){
-      dir.create(x,
-                 recursive = TRUE,
-                 showWarnings = FALSE)
-    }
-  }
-}
-
 #' Evalutate system command in directory
 #'
 #' Wrapper around system to execute a system command in a different

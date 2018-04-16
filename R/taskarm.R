@@ -14,7 +14,7 @@ TaskArm <- setRefClass(
       if (needed(debug = debug)){
         debug_msg(debug, "Invoking ", taskarm_name)
 
-        state_file(ensure_dir = TRUE, create = TRUE)
+        state_file(create = TRUE)
         job_create(name = taskarm_name,
                    basename = task_name,
                    arm_index = arm_index,
@@ -26,7 +26,7 @@ TaskArm <- setRefClass(
       }
     },
     needed = function(debug = FALSE){
-      state_file <- state_file(ensure_dir = FALSE, create = FALSE)
+      state_file <- state_file(create = FALSE)
       never_run <- !file.exists(state_file)
 
       timestamp_newer_than_last_run <- FALSE
@@ -64,7 +64,7 @@ TaskArm <- setRefClass(
       out
     },
     timestamp = function(){
-      state_file <- state_file(ensure_dir = FALSE, create = FALSE)
+      state_file <- state_file(create = FALSE)
 
       if (file.exists(state_file)){
         out <- file.info(state_file)$mtime
@@ -79,13 +79,11 @@ TaskArm <- setRefClass(
       }
       as.POSIXct(out)
     },
-    state_file = function(ensure_dir = TRUE, create = FALSE){
+    state_file = function(create = FALSE){
       state_fun <- task_env$config$state
       state_dir <- state_fun(normalizePath(".", winslash = "/"))
 
-      if (ensure_dir){
-        ensure_exists(state_dir)
-      }
+      fs::dir_create(state_dir)
       state_file <- paste0(state_dir, "/", taskarm_name)
 
       if (create){
