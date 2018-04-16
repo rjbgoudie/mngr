@@ -53,15 +53,23 @@ There are several file locations relevant to mngr:
    a separate location, when running the analysis, so that the original working
    copy of the R files can be edited while the original analysis is running,
    without changing what runs.
+
+   The location of this is set by the option ```mngr_dir_run```.
+
+   This should be a function that converts $GIT_TOPLEVEL to the equivalant run
+   directory. By default $HOME/path/to/$GIT_TOPLEVEL/ will be converted to
+   $HOME/run/$GIT_TOPLEVEL.
+
 3. The "results" location: this is where all of the plots, rds files, and logs
    are stored. You may wish for this to on a separate drive to the R source,
    since the output may be large and can be reproduced, so you might not need to
    back the results up so carefully.
 
-The location of the directory where the analysis is run is set by the option
-mngr_dir_run. This should be a function that converts $GIT_TOPLEVEL to the
-equivalant run directory. By default $HOME/path/to/$GIT_TOPLEVEL/ will be
-converted to $HOME/run/$GIT_TOPLEVEL.
+   The location of this is set by the option ```mngr_dir_results```.
+
+   This should be a function that converts a path (within the run directory) to
+   the corresponding path in the results location. By default, the results will
+   be saved within the run directory
 
 Installation
 ------------
