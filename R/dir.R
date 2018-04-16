@@ -99,7 +99,7 @@ run_dir <- function(dir = getwd(), check = TRUE){
   }
 
   git_toplevel <- git_toplevel_dir(dir = dir, check = FALSE)
-  dir_from_git_toplevel <- rel_path(dir = dir, start = git_toplevel)
+  dir_from_git_toplevel <- fs::path_rel(path = dir, start = git_toplevel)
   run_git_toplevel_dir <- run_git_toplevel_dir(check = FALSE)
   file.path(run_git_toplevel_dir, dir_from_git_toplevel)
 }
