@@ -67,17 +67,17 @@ run_git_toplevel_dir <- function(dir = getwd(), check = TRUE){
     stopifnot(is_inside_git_work_tree(dir))
   }
 
-  run_path_fun <- mngr_option_run_path()
-  run_path <- run_path_fun(normalizePath(dir, winslash = "/"))
-
   git_toplevel <- git_toplevel_dir(dir = dir, check = FALSE)
   if (!is_run_dir(dir)){
+    run_path_fun <- mngr_option_run_path()
+    run_path <- run_path_fun(normalizePath(dir, winslash = "/"))
+
     git_abbrev_ref <- git_abbrev_ref(dir = dir, base_only = TRUE)
     git_toplevel_name <- basename(git_toplevel)
 
-    normalizePath(file.path(run_path, git_toplevel_name, git_abbrev_ref))
+    fs::path(run_path, git_toplevel_name, git_abbrev_ref)
   } else {
-    normalizePath(git_toplevel)
+    fs::path(git_toplevel)
   }
 }
 
