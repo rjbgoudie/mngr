@@ -35,16 +35,15 @@ dir_git_toplevel <- function(dir = getwd(), check = TRUE){
   system_in_dir(command, dir = dir, intern = TRUE)
 }
 
-#' Git toplevel directory of the run directory
+#' Toplevel directory of the (branch-specific) run directory
 #'
-#' Return the path to the git toplevel (ie the root directory) of the
-#' corresponding run directory for the supplied directory.
+#' If passed ~/analyses/project/folder/, where ~/analyses/project is the git
+#' toplevel folder, will return
 #'
-#' The path: $HOME/foo/gittoplevel/folder
-#' is converted to: $HOME/run/foo/gittoplevel
+#' mngr_option_run_path("$GIT_TOPLEVEL")/$GIT_BRANCH/
 #'
-#' If the supplied dir is a run directory, then the git toplevel of that dir is
-#' returned.
+#' If mngr_option_run_path($GIT_TOPLEVEL)=$GIT_TOPLEVEL, then just returns what
+#' was supplied
 #'
 #' @param dir A directory
 #' @param check Logical, if FALSE no test for whether dir is inside a git work
@@ -70,7 +69,7 @@ dir_run_branch_toplevel <- function(dir = getwd(), check = TRUE){
   }
 }
 
-#' Corresponding run directory
+#' Corresponding (branch-specific) run directory
 #'
 #' If passed ~/analyses/project/folder/, where ~/analyses/project is the git
 #' toplevel folder, will return
