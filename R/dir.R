@@ -40,9 +40,9 @@ dir_git_toplevel <- function(dir = getwd(), check = TRUE){
 #' If passed ~/analyses/project/folder/, where ~/analyses/project is the git
 #' toplevel folder, will return
 #'
-#' mngr_option_run_path("$GIT_TOPLEVEL")/$GIT_BRANCH/
+#' mngr_option_dir_run("$GIT_TOPLEVEL")/$GIT_BRANCH/
 #'
-#' If mngr_option_run_path($GIT_TOPLEVEL)=$GIT_TOPLEVEL, then just returns what
+#' If mngr_option_dir_run($GIT_TOPLEVEL)=$GIT_TOPLEVEL, then just returns what
 #' was supplied
 #'
 #' @param dir A directory
@@ -58,10 +58,10 @@ dir_run_branch_toplevel <- function(dir = getwd(), check = TRUE){
 
   # Convert git_toplevel path to rundir equivalent
   dir_run_toplevel_fun <- mngr_option_dir_run()
-  dir_run_toplevel <- dir_run_toplevel(dir_git_toplevel)
+  dir_run_toplevel <- dir_run_toplevel_fun(dir_git_toplevel)
 
-  if (run_path == dir_git_toplevel){
-    # if run_path_fun returns input, then assume we are already in rundir
+  if (dir_run_toplevel == dir_git_toplevel){
+    # if dir_run_toplevel_fun returns input, then assume we are already in rundir
     dir_git_toplevel
   } else {
     git_abbrev_ref <- git_abbrev_ref(dir = dir, base_only = TRUE)
@@ -74,9 +74,9 @@ dir_run_branch_toplevel <- function(dir = getwd(), check = TRUE){
 #' If passed ~/analyses/project/folder/, where ~/analyses/project is the git
 #' toplevel folder, will return
 #'
-#' mngr_option_run_path("$GIT_TOPLEVEL")/$GIT_BRANCH/folder/
+#' mngr_option_dir_run("$GIT_TOPLEVEL")/$GIT_BRANCH/folder/
 #'
-#' If mngr_option_run_path($GIT_TOPLEVEL)=$GIT_TOPLEVEL, then just returns what
+#' If mngr_option_dir_run($GIT_TOPLEVEL)=$GIT_TOPLEVEL, then just returns what
 #' was supplied
 #'
 #' @param dir A directory

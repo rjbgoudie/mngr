@@ -59,7 +59,7 @@ There are several file locations relevant to mngr:
    back the results up so carefully.
 
 The location of the directory where the analysis is run is set by the option
-mngr_run_path. This should be a function that converts $GIT_TOPLEVEL to the
+mngr_dir_run. This should be a function that converts $GIT_TOPLEVEL to the
 equivalant run directory. By default $HOME/path/to/$GIT_TOPLEVEL/ will be
 converted to $HOME/run/$GIT_TOPLEVEL.
 

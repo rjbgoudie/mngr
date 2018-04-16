@@ -16,7 +16,7 @@ mngr_config <- function(...){
   assign("config", new, envir = task_env)
 }
 
-mngr_option_run_path <- function(){
+mngr_option_dir_run <- function(){
   default <- function(dir){
     home <- Sys.getenv("HOME")
     git_toplevel <- dir_git_toplevel(dir = dir, check = FALSE)
@@ -28,7 +28,7 @@ mngr_option_run_path <- function(){
       fs::path(home, "run", git_toplevel_name)
     }
   }
-  getOption("mngr_run_path") %||% default
+  getOption("mngr_dir_run") %||% default
 }
 
 mngr_option_use_tempfile <- function(){
