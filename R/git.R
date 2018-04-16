@@ -13,23 +13,23 @@ git_clone_or_pull <- function(dir = getwd()){
   if (!dir_is_inside_git_work_tree){
     stop("Directory is not a git directory")
   }
-  git_toplevel_dir <- git_toplevel_dir(dir)
-  repo <- git2r::repository(path = git_toplevel_dir)
+  dir_git_toplevel <- dir_git_toplevel(dir)
+  repo <- git2r::repository(path = dir_git_toplevel)
   git_head_name <- git2r::head(repo)@name
 
-  run_git_toplevel_dir <- run_git_toplevel_dir(dir = dir, check = TRUE)
-  dir.create(run_git_toplevel_dir, recursive = TRUE, showWarnings = FALSE)
+  dir_run_branch_toplevel <- dir_run_branch_toplevel(dir = dir, check = TRUE)
+  dir.create(dir_run_branch_toplevel, recursive = TRUE, showWarnings = FALSE)
 
-  run_is_inside_git_work_tree <- is_inside_git_work_tree(run_git_toplevel_dir)
+  run_is_inside_git_work_tree <- is_inside_git_work_tree(dir_run_branch_toplevel)
   if (run_is_inside_git_work_tree){
-    run_repo <- git2r::repository(path = run_git_toplevel_dir)
+    run_repo <- git2r::repository(path = dir_run_branch_toplevel)
     git2r::pull(repo = run_repo)
     git2r::checkout(run_repo, branch = git_head_name)
     message("Pull complete")
   } else {
-    git2r::clone(url = git_toplevel_dir(check = FALSE),
-                 local_path = run_git_toplevel_dir)
-    run_repo <- git2r::repository(path = run_git_toplevel_dir)
+    git2r::clone(url = dir_git_toplevel(check = FALSE),
+                 local_path = dir_run_branch_toplevel)
+    run_repo <- git2r::repository(path = dir_run_branch_toplevel)
     git2r::checkout(run_repo, branch = git_head_name)
     message("Clone complete")
   }

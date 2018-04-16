@@ -74,7 +74,7 @@ run <- function(name = "default", debug = FALSE){
   git_clone_or_pull()
 
   assign("jobids", c(), envir = slurm_env)
-  with_dir(run_dir(check = TRUE), {
+  with_dir(dir_run_branch(check = TRUE), {
     mngrfile <- find_mngrfile(getwd())
     source(mngrfile)
 

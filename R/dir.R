@@ -26,7 +26,7 @@ is_inside_git_work_tree <- function(dir = getwd()){
 #' @param check Logical, if TRUE no test for whether dir is inside a git work
 #' tree
 #' @return The path to the toplevel git directory
-git_toplevel_dir <- function(dir = getwd(), check = TRUE){
+dir_git_toplevel <- function(dir = getwd(), check = TRUE){
   if (check){
     stopifnot(is_inside_git_work_tree(dir))
   }
@@ -50,23 +50,23 @@ git_toplevel_dir <- function(dir = getwd(), check = TRUE){
 #' @param check Logical, if FALSE no test for whether dir is inside a git work
 #' tree
 #' @return Path to the git toplevel for the run directory corresponding to dir
-run_git_toplevel_dir <- function(dir = getwd(), check = TRUE){
+dir_run_branch_toplevel <- function(dir = getwd(), check = TRUE){
   if (check){
     stopifnot(is_inside_git_work_tree(dir))
   }
   dir <- fs::path_tidy(dir)
-  git_toplevel <- git_toplevel_dir(dir = dir, check = FALSE)
+  dir_git_toplevel <- dir_git_toplevel(dir = dir, check = FALSE)
 
   # Convert git_toplevel path to rundir equivalent
-  run_path_fun <- mngr_option_run_path()
-  run_path <- run_path_fun(git_toplevel)
+  dir_run_toplevel_fun <- mngr_option_dir_run()
+  dir_run_toplevel <- dir_run_toplevel(dir_git_toplevel)
 
-  if (run_path == git_toplevel){
+  if (run_path == dir_git_toplevel){
     # if run_path_fun returns input, then assume we are already in rundir
-    git_toplevel
+    dir_git_toplevel
   } else {
     git_abbrev_ref <- git_abbrev_ref(dir = dir, base_only = TRUE)
-    fs::path(run_path, git_toplevel_name, git_abbrev_ref)
+    fs::path(dir_run_toplevel, git_abbrev_ref)
   }
 }
 
@@ -86,13 +86,13 @@ run_git_toplevel_dir <- function(dir = getwd(), check = TRUE){
 #' @return Return the path to the corresponding run directory for the supplied
 #' directory. If the supplied dir is a run directory, then the supplied
 #' directory is returned.
-run_dir <- function(dir = getwd(), check = TRUE){
+dir_run_branch <- function(dir = getwd(), check = TRUE){
   if (check){
     stopifnot(is_inside_git_work_tree(dir))
   }
 
-  git_toplevel <- git_toplevel_dir(dir = dir, check = FALSE)
+  git_toplevel <- dir_git_toplevel(dir = dir, check = FALSE)
   dir_from_git_toplevel <- fs::path_rel(path = dir, start = git_toplevel)
-  run_git_toplevel_dir <- run_git_toplevel_dir(check = FALSE)
-  file.path(run_git_toplevel_dir, dir_from_git_toplevel)
+  dir_run_branch_toplevel <- dir_run_branch_toplevel(check = FALSE)
+  file.path(dir_run_branch_toplevel, dir_from_git_toplevel)
 }

@@ -115,7 +115,7 @@ squeue <- function(jobs = NULL,
 #'
 #' @export
 latest_logs <- function(){
-  with_dir(run_dir(check = TRUE), {
+  with_dir(dir_run_branch(check = TRUE), {
     mngrfile <- find_mngrfile(getwd())
     mngr_config(pause_loading = TRUE)
     source(mngrfile)

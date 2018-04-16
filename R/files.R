@@ -14,7 +14,7 @@ file_path <- function(file,
                       extension = "",
                       splitting = FALSE){
   output_fun <- task_env$config$output
-  pre <- output_fun(run_dir())
+  pre <- output_fun(dir_run_branch())
 
   dir <- fs::path(pre, directory, arm)
   fs::dir_create(dir)
