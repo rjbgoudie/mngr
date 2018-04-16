@@ -35,18 +35,6 @@ git_toplevel_dir <- function(dir = getwd(), check = TRUE){
   system_in_dir(command, dir = dir, intern = TRUE)
 }
 
-#' Check if dir is a run directory
-#'
-#' simply checks whether dir start with $HOME/run
-#'
-#' @param dir A directory
-#' @return A logical vector indicating whether the directory starts with
-#' $HOME/run
-is_run_dir <- function(dir = getwd()){
-  pattern <- paste0("run")
-  grepl(pattern, dir)
-}
-
 #' Git toplevel directory of the run directory
 #'
 #' Return the path to the git toplevel (ie the root directory) of the
@@ -66,26 +54,31 @@ run_git_toplevel_dir <- function(dir = getwd(), check = TRUE){
   if (check){
     stopifnot(is_inside_git_work_tree(dir))
   }
-
+  dir <- fs::path_tidy(dir)
   git_toplevel <- git_toplevel_dir(dir = dir, check = FALSE)
-  if (!is_run_dir(dir)){
-    run_path_fun <- mngr_option_run_path()
-    run_path <- run_path_fun(normalizePath(dir, winslash = "/"))
 
-    git_abbrev_ref <- git_abbrev_ref(dir = dir, base_only = TRUE)
-    git_toplevel_name <- basename(git_toplevel)
+  # Convert git_toplevel path to rundir equivalent
+  run_path_fun <- mngr_option_run_path()
+  run_path <- run_path_fun(git_toplevel)
 
-    fs::path(run_path, git_toplevel_name, git_abbrev_ref)
+  if (run_path == git_toplevel){
+    # if run_path_fun returns input, then assume we are already in rundir
+    git_toplevel
   } else {
-    fs::path(git_toplevel)
+    git_abbrev_ref <- git_abbrev_ref(dir = dir, base_only = TRUE)
+    fs::path(run_path, git_toplevel_name, git_abbrev_ref)
   }
 }
 
 #' Corresponding run directory
 #'
-#' Converts a directory to the corresponding run directory. For example, the
-#' path $HOME/foo/gittoplevel/folder is converted to
-#' $HOME/run/foo/gittoplevel/folder
+#' If passed ~/analyses/project/folder/, where ~/analyses/project is the git
+#' toplevel folder, will return
+#'
+#' mngr_option_run_path("$GIT_TOPLEVEL")/$GIT_BRANCH/folder/
+#'
+#' If mngr_option_run_path($GIT_TOPLEVEL)=$GIT_TOPLEVEL, then just returns what
+#' was supplied
 #'
 #' @param dir A directory
 #' @param check Logical, if FALSE no test for whether dir is inside a git work

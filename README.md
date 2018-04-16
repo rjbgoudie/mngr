@@ -47,7 +47,8 @@ File locations and paths
 
 There are several file locations relevant to mngr:
 
-1. Where the actual R files are stored, which must be within a git repository
+1. Where the actual R files are stored, which must be within a git repository.
+   We call the top level directory of this git repository $GIT_TOPLEVEL
 2. Where the R files will be _run_ from: mngr checks out the git repository to
    a separate location, when running the analysis, so that the original working
    copy of the R files can be edited while the original analysis is running,
@@ -56,6 +57,11 @@ There are several file locations relevant to mngr:
    are stored. You may wish for this to on a separate drive to the R source,
    since the output may be large and can be reproduced, so you might not need to
    back the results up so carefully.
+
+The location of the directory where the analysis is run is set by the option
+mngr_run_path. This should be a function that converts $GIT_TOPLEVEL to the
+equivalant run directory. By default $HOME/path/to/$GIT_TOPLEVEL/ will be
+converted to $HOME/run/$GIT_TOPLEVEL.
 
 Installation
 ------------

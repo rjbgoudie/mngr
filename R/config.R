@@ -18,7 +18,15 @@ mngr_config <- function(...){
 
 mngr_option_run_path <- function(){
   default <- function(dir){
-    file.path(Sys.getenv("HOME"), "run")
+    home <- Sys.getenv("HOME")
+    git_toplevel <- git_toplevel_dir(dir = dir, check = FALSE)
+    git_toplevel_name <- basename(git_toplevel)
+    # if already in a run, just return supplied dir
+    if (grepl(p, dir)){
+      git_toplevel
+    } else {
+      fs::path(home, "run", git_toplevel_name)
+    }
   }
   getOption("mngr_run_path") %||% default
 }
