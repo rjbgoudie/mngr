@@ -14,16 +14,11 @@ file_path <- function(file,
                       extension = "",
                       splitting = FALSE){
   output_fun <- task_env$config$output
-  np <- normalizePath(".", winslash = "/")
   pre <- output_fun(run_dir())
 
-  directory <- ifelse(directory == "", "", paste0(directory, "/"))
-  arm <- paste0(arm, "/")
-  extension <- ifelse(extension == "", "", paste0(".", extension))
-
-  path_directory <- file.path(pre, directory, arm)
-  fs::dir_create(path_directory)
-  file.path(path_directory, paste0(file, extension))
+  dir <- fs::path(pre, directory, arm)
+  fs::dir_create(dir)
+  fs::path(dir, file, ext = extension)
 }
 
 #' path to rds file
