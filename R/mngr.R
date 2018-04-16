@@ -88,8 +88,7 @@ run <- function(name = "default", debug = FALSE){
     run_jobs(debug = debug)
 
     # this is the wrong place for this
-    r_log_fun <- task_env$config$r_logs
-    r_log_path <- r_log_fun(normalizePath(".", winslash = "/"))
+    r_log_dir <- mngr_option_dir_r_logs()(fs::path_tidy(getwd()))
 
     invisible(TRUE)
   })
@@ -117,7 +116,7 @@ run <- function(name = "default", debug = FALSE){
         cat("Killed all child processes\n")
       })
     } else {
-      paste(paste(jobids, collapse = ","), r_log_path)
+      paste(paste(jobids, collapse = ","), r_log_dir)
     }
   } else {
     message("No jobs submitted")

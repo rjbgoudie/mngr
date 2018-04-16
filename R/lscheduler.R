@@ -181,19 +181,13 @@ LSchedulerJob <- setRefClass(
       }
     },
     r_log_latest_file = function(){
-      r_log_fun <- task_env$config$r_logs
-      r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
-      r_log_latest_dir <- paste0(r_log_dir, "-latest/")
-
+      r_log_latest_dir <- mngr_option_dir_r_logs_latest()(fs::path_tidy(getwd()))
       fs::dir_create(r_log_latest_dir)
       r_log_latest_file <- paste0(name, ".Rout")
       file.path(r_log_latest_dir, r_log_latest_file)
     },
     r_log_specific_file = function(){
-      r_log_fun <- task_env$config$r_logs
-      r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
-
-
+      r_log_dir <- mngr_option_dir_r_logs()(fs::path_tidy(getwd()))
       fs::dir_create(r_log_dir)
 
       r_log_latest_file <- paste0(name, ".Rout")
@@ -202,6 +196,6 @@ LSchedulerJob <- setRefClass(
     },
     jobname = function(){
       paste(name, git_short_sha(), sep = "__")
-  }
-)
+    }
+  )
 )

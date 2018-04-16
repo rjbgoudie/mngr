@@ -120,10 +120,8 @@ latest_logs <- function(){
     mngr_config(pause_loading = TRUE)
     source(mngrfile)
     mngr_config(pause_loading = FALSE)
-    r_log_fun <- task_env$config$r_logs
-    r_log_dir <- r_log_fun(normalizePath(".", winslash = "/"))
-    r_log_latest_dir <- paste0(r_log_dir, "-latest/")
 
+    r_log_latest_dir <- mngr_option_dir_r_logs_latest()(fs::path_tidy(getwd()))
     r_log_latest_file <- "*.Rout"
     logs_paths <- Sys.glob(file.path(r_log_latest_dir, r_log_latest_file))
     rout_df <- parse_rout_files(logs_paths, type = "rlatest")

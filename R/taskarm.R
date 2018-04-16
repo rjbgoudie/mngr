@@ -80,9 +80,7 @@ TaskArm <- setRefClass(
       as.POSIXct(out)
     },
     state_file = function(create = FALSE){
-      state_fun <- task_env$config$state
-      state_dir <- state_fun(normalizePath(".", winslash = "/"))
-
+      state_dir <- mngr_option_dir_state()(fs::path_tidy(getwd()))
       fs::dir_create(state_dir)
       state_file <- paste0(state_dir, "/", taskarm_name)
 
