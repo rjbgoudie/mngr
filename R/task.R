@@ -96,14 +96,14 @@ Task <- setRefClass(
     merge = "list",
     split = "list",
     properties = "list",
-    custom_last_edited_time = "list",
+    filename_function = "list",
     arms_cache = "list",
     arms_cached = "logical"
   ),
   methods = list(
     initialize = function(...){
       already_invoked <<- FALSE
-      custom_last_edited_time <<- list()
+      filename_function <<- list(function(name){""})
       actions <<- list()
       prereqs <<- character(0)
       arms_cached <<- c(FALSE, FALSE)
@@ -266,9 +266,10 @@ Task <- setRefClass(
                          prereqs = arm_prereqs,
                          actions = actions,
                          properties = properties,
-                         custom_last_edited_time = custom_last_edited_time)
+                         task_filename = get_filename())
           taskarm_get(this_taskarm_name, exists = TRUE)$invoke(debug = debug)
         }
+        message(name, " invoked")
       }
     },
     prereq_tasks = function(){
@@ -300,8 +301,11 @@ Task <- setRefClass(
       to_add <- !(names(new) %in% names(properties))
       properties <<- c(properties, new[to_add])
     },
-    set_custom_last_edited_time = function(f){
-      custom_last_edited_time[[1]] <<- f
+    set_filename_function = function(f){
+      filename_function[[1]] <<- f
+    },
+    get_filename = function(){
+      filename_function[[1]](name)
     }
   )
 )

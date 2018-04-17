@@ -7,7 +7,7 @@ TaskArm <- setRefClass(
     prereqs = "character", # a list of task names
     actions = "list",
     properties = "list",
-    custom_last_edited_time = "list"
+    task_filename = "character"
   ),
   methods = list(
     invoke = function(debug = FALSE){
@@ -37,11 +37,9 @@ TaskArm <- setRefClass(
     },
 
     last_edited_time = function(){
-      "Returns POSIXct with custom_last_edited_time (or Unix epoch)"
-      have_custom <- length(custom_last_edited_time) > 0
-      ifelse(have_custom,
-             custom_last_edited_time[[1]](name = task_name),
-             MNGR_UNIX_EPOCH)
+      "Returns POSIXct with last edited time for the source code file of the
+       corresponding task. Returns the Unix epoch if source code file not found"
+      task_last_edited(task_filename)
     },
 
     update_last_invoked_time = function(){

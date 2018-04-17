@@ -87,6 +87,9 @@ run <- function(name = "default", debug = FALSE){
     message("Loading state files")
     state_load_all()
 
+    # Preload edited status of source files
+    task_last_edited_load_all()
+
     name_expr <- substitute(name)
     if (is.name(name_expr)){
       name <- as.character(name_expr)
