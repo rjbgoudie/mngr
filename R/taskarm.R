@@ -26,42 +26,11 @@ TaskArm <- setRefClass(
       }
     },
     needed = function(debug = FALSE){
-      state_file <- state_path()
-      never_run <- !file.exists(state_file)
-
-      timestamp_newer_than_last_run <- FALSE
-      if (!never_run){
-        last_run_date <- file.info(state_file)$mtime
-        ts <- timestamp()
-        debug_msg(debug, "lastrundate:", last_run_date, ". timestamp: ", ts)
-        timestamp_newer_than_last_run <- ts > last_run_date
-      }
-
-      prerequisite_run_more_recently <- FALSE
-      most_recent_prereq <- FALSE
-      if (length(prereqs) > 0){
-        prereqs_timestamp <- lapply(prereqs, function(taskarm_name){
-          taskarm_get(taskarm_name, exists = TRUE)$timestamp()
-        })
-        most_recent_prereq <- do.call("max", prereqs_timestamp)
-      }
-      prerequisite_run_more_recently <- most_recent_prereq > timestamp()
-
-      # flesh this out
-      build_all <- FALSE
-
-      out <- never_run ||
-        timestamp_newer_than_last_run ||
-        prerequisite_run_more_recently ||
-        build_all
-
-      debug_msg(debug,
-                "Needed status for ", taskarm_name, " is ", out, ". ",
-                "never_run: ", never_run, ". ",
-                "prerequistite_run_more_recently: ", prerequisite_run_more_recently,
-                ". ",
-                "build_all: ", build_all, ".")
-      out
+      # important to use || here, since timestamp_newer_than_last_run relies
+      # on state_file being available
+      never_run() ||
+        timestamp_newer_than_last_run() ||
+        prerequisite_run_more_recently()
     },
     timestamp = function(){
       state_file <- state_path()
@@ -91,6 +60,33 @@ TaskArm <- setRefClass(
       state_file <- state_path()
       fs::file_create(state_file)
       Sys.setFileTime(state_file, Sys.time())
+    },
+
+    never_run = function(){
+      "Returns TRUE if this taskarm has never been run"
+      never_run <- !file.exists(state_path())
+      never_run
+    },
+
+    timestamp_newer_than_last_run = function(){
+      "Returns TRUE if timestamp is after last_run_time"
+      last_run_date <- file.info(state_path())$mtime
+      ts <- timestamp()
+      ts > last_run_date
+    },
+
+    prerequisite_run_more_recently = function(){
+      "Returns TRUE if any prereqisite has a timestamp newer than this task's
+       timestamp"
+      if (length(prereqs) > 0){
+        prereqs_timestamp <- lapply(prereqs, function(taskarm_name){
+          taskarm_get(taskarm_name, exists = TRUE)$timestamp()
+        })
+        most_recent_prereq <- do.call("max", prereqs_timestamp)
+        most_recent_prereq > timestamp()
+      } else {
+        FALSE
+      }
     }
   )
 )
