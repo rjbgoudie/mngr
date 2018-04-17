@@ -14,7 +14,7 @@ TaskArm <- setRefClass(
       if (needed(debug = debug)){
         debug_msg(debug, "Invoking ", taskarm_name)
 
-        state_file(create = TRUE)
+        mark_done()
         job_create(name = taskarm_name,
                    basename = task_name,
                    arm_index = arm_index,
@@ -26,7 +26,7 @@ TaskArm <- setRefClass(
       }
     },
     needed = function(debug = FALSE){
-      state_file <- state_file(create = FALSE)
+      state_file <- state_path()
       never_run <- !file.exists(state_file)
 
       timestamp_newer_than_last_run <- FALSE
@@ -64,7 +64,7 @@ TaskArm <- setRefClass(
       out
     },
     timestamp = function(){
-      state_file <- state_file(create = FALSE)
+      state_file <- state_path()
 
       if (file.exists(state_file)){
         out <- file.info(state_file)$mtime
@@ -79,17 +79,18 @@ TaskArm <- setRefClass(
       }
       as.POSIXct(out)
     },
-    state_file = function(create = FALSE){
+    state_path = function(){
+      "Get path to the state file for this taskarm"
       state_dir <- mngr_option_dir_state()(fs::path_tidy(getwd()))
       fs::dir_create(state_dir)
-      state_file <- paste0(state_dir, "/", taskarm_name)
+      fs::path(state_dir, taskarm_name)
+    },
 
-      if (create){
-        file.create(state_file)
-        Sys.setFileTime(state_file, Sys.time())
-      } else {
-        state_file
-      }
+    mark_done = function(){
+      "Mark this taskarm as just done. ie touch the state_path"
+      state_file <- state_path()
+      fs::file_create(state_file)
+      Sys.setFileTime(state_file, Sys.time())
     }
   )
 )
