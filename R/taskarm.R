@@ -11,6 +11,7 @@ TaskArm <- setRefClass(
   ),
   methods = list(
     invoke = function(debug = FALSE){
+      "Invoke taskarm (if needed), and create required Job"
       if (needed(debug = debug)){
         debug_msg(debug, "Invoking ", taskarm_name)
 
@@ -25,7 +26,11 @@ TaskArm <- setRefClass(
         debug_msg(debug, taskarm_name, " not needed")
       }
     },
+
     needed = function(debug = FALSE){
+      "Returns TRUE if the task has never been invoked; or if it has been edited
+      since last invocation; or if a prerequisite has been invoked after this
+      taskarm was last invoked"
       !ever_invoked() ||
         edited_since_last_invoked() ||
         prerequisite_invoked_more_recently()
