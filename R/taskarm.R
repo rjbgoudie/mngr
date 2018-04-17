@@ -26,11 +26,9 @@ TaskArm <- setRefClass(
       }
     },
     needed = function(debug = FALSE){
-      # important to use || here, since edited_since_last_run relies
-      # on state_file being available
-      never_run() ||
-        edited_since_last_run() ||
-        prerequisite_run_more_recently()
+      !ever_invoked() ||
+        edited_since_last_invoked() ||
+        prerequisite_invoked_more_recently()
     },
 
     last_edited_time = function(){
@@ -56,26 +54,26 @@ TaskArm <- setRefClass(
     },
 
     last_invoked_time = function(){
-      "Returns POSIXct with the last_invoked_time (or Unix epoch if never run)"
-      if (never_run()){
-        MNGR_UNIX_EPOCH
-      } else{
+      "Returns POSIXct with the last_invoked_time (or Unix epoch if never
+       invoked)"
+      if (ever_invoked()){
         file.info(state_path())$mtime
+      } else{
+        MNGR_UNIX_EPOCH
       }
     },
 
-    never_run = function(){
-      "Returns TRUE if this taskarm has never been run"
-      never_run <- !file.exists(state_path())
-      never_run
+    ever_invoked = function(){
+      "Returns TRUE if this taskarm has ever been invoked"
+      file.exists(state_path())
     },
 
-    edited_since_last_run = function(){
+    edited_since_last_invoked = function(){
       "Returns TRUE if last_edited_time is after last_invoked_time"
       last_edited_time() > last_invoked_time()
     },
 
-    prerequisite_run_more_recently = function(){
+    prerequisite_invoked_more_recently = function(){
       "Returns TRUE if any prerequisite has been invoked since this taskarm
        was last invoked"
       if (length(prereqs) > 0){
