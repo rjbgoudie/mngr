@@ -14,7 +14,7 @@ TaskArm <- setRefClass(
       if (needed(debug = debug)){
         debug_msg(debug, "Invoking ", taskarm_name)
 
-        mark_done()
+        update_last_invoked_time()
         job_create(name = taskarm_name,
                    basename = task_name,
                    arm_index = arm_index,
@@ -32,22 +32,16 @@ TaskArm <- setRefClass(
         timestamp_newer_than_last_run() ||
         prerequisite_run_more_recently()
     },
-    timestamp = function(){
-      state_file <- state_path()
 
-      if (file.exists(state_file)){
-        out <- file.info(state_file)$mtime
-      } else {
-        out <- Sys.time()
-      }
-      if (length(custom_timestamp) > 0){
-        custom <- custom_timestamp[[1]](name = task_name)
-        if (custom > out){
-          out <- custom
-        }
-      }
-      as.POSIXct(out)
+    timestamp = function(){
+      "Returns POSIXct with newer of last_invoked_time or custom_timestamp"
+      have_custom <- length(custom_timestamp) > 0
+      custom <- ifelse(have_custom,
+                       custom_timestamp[[1]](name = task_name),
+                       MNGR_UNIX_EPOCH)
+      max(last_invoked_time(), custom)
     },
+
     state_path = function(){
       "Get path to the state file for this taskarm"
       state_dir <- mngr_option_dir_state()(fs::path_tidy(getwd()))
@@ -55,11 +49,20 @@ TaskArm <- setRefClass(
       fs::path(state_dir, taskarm_name)
     },
 
-    mark_done = function(){
+    update_last_invoked_time = function(){
       "Mark this taskarm as just done. ie touch the state_path"
       state_file <- state_path()
       fs::file_create(state_file)
       Sys.setFileTime(state_file, Sys.time())
+    },
+
+    last_invoked_time = function(){
+      "Returns POSIXct with the last_invoked_time (or Unix epoch if never run)"
+      if (never_run()){
+        MNGR_UNIX_EPOCH
+      } else{
+        file.info(state_path())$mtime
+      }
     },
 
     never_run = function(){
@@ -69,10 +72,8 @@ TaskArm <- setRefClass(
     },
 
     timestamp_newer_than_last_run = function(){
-      "Returns TRUE if timestamp is after last_run_time"
-      last_run_date <- file.info(state_path())$mtime
-      ts <- timestamp()
-      ts > last_run_date
+      "Returns TRUE if timestamp is after last_invoked_time"
+      timestamp() > last_invoked_time()
     },
 
     prerequisite_run_more_recently = function(){

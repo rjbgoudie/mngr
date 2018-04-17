@@ -25,6 +25,8 @@ lscheduler_env <- new.env()
 # This is the default maximum number of tasks that can run at once
 mngr_default_throttle <- 100
 
+MNGR_UNIX_EPOCH <- as.POSIXct(0, tz = "GMT", origin = "1970-01-01")
+
 #' Find Mngrfile
 #'
 #' Find the Mngrfile in the supplied directory or the parent directory
