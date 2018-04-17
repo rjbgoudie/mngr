@@ -25,6 +25,8 @@ lscheduler_env <- new.env()
 # This is the default maximum number of tasks that can run at once
 mngr_default_throttle <- 100
 
+state_env <- new.env()
+
 MNGR_UNIX_EPOCH <- as.POSIXct(0, tz = "GMT", origin = "1970-01-01")
 
 #' Find Mngrfile
@@ -79,6 +81,9 @@ run <- function(name = "default", debug = FALSE){
   with_dir(dir_run_branch(check = TRUE), {
     mngrfile <- find_mngrfile(getwd())
     source(mngrfile)
+
+    # Preload all state files, to avoid slow access to modified date etc
+    state_load_all()
 
     name_expr <- substitute(name)
     if (is.name(name_expr)){

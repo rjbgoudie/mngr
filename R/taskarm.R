@@ -44,33 +44,20 @@ TaskArm <- setRefClass(
              MNGR_UNIX_EPOCH)
     },
 
-    state_path = function(){
-      "Get path to the state file for this taskarm"
-      state_dir <- mngr_option_dir_state()(fs::path_tidy(getwd()))
-      fs::dir_create(state_dir)
-      fs::path(state_dir, taskarm_name)
-    },
-
     update_last_invoked_time = function(){
-      "Mark this taskarm as just done. ie touch the state_path"
-      state_file <- state_path()
-      fs::file_create(state_file)
-      Sys.setFileTime(state_file, Sys.time())
+      "Mark this taskarm as just done"
+      state_update_last_invoked_time(taskarm_name)
     },
 
     last_invoked_time = function(){
       "Returns POSIXct with the last_invoked_time (or Unix epoch if never
        invoked)"
-      if (ever_invoked()){
-        file.info(state_path())$mtime
-      } else{
-        MNGR_UNIX_EPOCH
-      }
+      state_last_invoked(taskarm_name)
     },
 
     ever_invoked = function(){
       "Returns TRUE if this taskarm has ever been invoked"
-      file.exists(state_path())
+      state_ever_invoked(taskarm_name)
     },
 
     edited_since_last_invoked = function(){
