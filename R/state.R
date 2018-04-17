@@ -16,7 +16,7 @@ state_ever_invoked <- function(taskarm_name){
 state_last_invoked <- function(taskarm_name){
   if (state_ever_invoked(taskarm_name)){
     state_env$info %>%
-      filter(state_env$info$file == taskarm_name) %>%
+      filter(file == taskarm_name) %>%
       pull(modification_time)
   } else{
     MNGR_UNIX_EPOCH
