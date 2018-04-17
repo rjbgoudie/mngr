@@ -27,7 +27,7 @@ rfile_create <- function(name, action){
     r_file_date <- system(command, intern = TRUE)
     as.POSIXct(strptime(r_file_date, format = "%a,  %d %b %Y %T %z"))
   }
-  task$set_custom_timestamp(r_file_date)
+  task$set_custom_last_edited_time(r_file_date)
   task_env$tasklist <- c(list(task), task_env$tasklist)
   names(task_env$tasklist)[1] <- name
 }

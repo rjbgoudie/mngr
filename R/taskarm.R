@@ -7,7 +7,7 @@ TaskArm <- setRefClass(
     prereqs = "character", # a list of task names
     actions = "list",
     properties = "list",
-    custom_timestamp = "list"
+    custom_last_edited_time = "list"
   ),
   methods = list(
     invoke = function(debug = FALSE){
@@ -26,20 +26,19 @@ TaskArm <- setRefClass(
       }
     },
     needed = function(debug = FALSE){
-      # important to use || here, since timestamp_newer_than_last_run relies
+      # important to use || here, since edited_since_last_run relies
       # on state_file being available
       never_run() ||
-        timestamp_newer_than_last_run() ||
+        edited_since_last_run() ||
         prerequisite_run_more_recently()
     },
 
-    timestamp = function(){
-      "Returns POSIXct with newer of last_invoked_time or custom_timestamp"
-      have_custom <- length(custom_timestamp) > 0
-      custom <- ifelse(have_custom,
-                       custom_timestamp[[1]](name = task_name),
-                       MNGR_UNIX_EPOCH)
-      max(last_invoked_time(), custom)
+    last_edited_time = function(){
+      "Returns POSIXct with custom_last_edited_time (or Unix epoch)"
+      have_custom <- length(custom_last_edited_time) > 0
+      ifelse(have_custom,
+             custom_last_edited_time[[1]](name = task_name),
+             MNGR_UNIX_EPOCH)
     },
 
     state_path = function(){
@@ -71,20 +70,19 @@ TaskArm <- setRefClass(
       never_run
     },
 
-    timestamp_newer_than_last_run = function(){
-      "Returns TRUE if timestamp is after last_invoked_time"
-      timestamp() > last_invoked_time()
+    edited_since_last_run = function(){
+      "Returns TRUE if last_edited_time is after last_invoked_time"
+      last_edited_time() > last_invoked_time()
     },
 
     prerequisite_run_more_recently = function(){
-      "Returns TRUE if any prereqisite has a timestamp newer than this task's
-       timestamp"
+      "Returns TRUE if any prerequisite has been invoked since this taskarm
+       was last invoked"
       if (length(prereqs) > 0){
-        prereqs_timestamp <- lapply(prereqs, function(taskarm_name){
-          taskarm_get(taskarm_name, exists = TRUE)$timestamp()
+        prereqs_last_invoked_time <- lapply(prereqs, function(taskarm_name){
+          taskarm_get(taskarm_name, exists = TRUE)$last_invoked_time()
         })
-        most_recent_prereq <- do.call("max", prereqs_timestamp)
-        most_recent_prereq > timestamp()
+        do.call("max", prereqs_last_invoked_time) > last_invoked_time()
       } else {
         FALSE
       }

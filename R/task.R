@@ -96,14 +96,14 @@ Task <- setRefClass(
     merge = "list",
     split = "list",
     properties = "list",
-    custom_timestamp = "list",
+    custom_last_edited_time = "list",
     arms_cache = "list",
     arms_cached = "logical"
   ),
   methods = list(
     initialize = function(...){
       already_invoked <<- FALSE
-      custom_timestamp <<- list()
+      custom_last_edited_time <<- list()
       actions <<- list()
       prereqs <<- character(0)
       arms_cached <<- c(FALSE, FALSE)
@@ -266,7 +266,7 @@ Task <- setRefClass(
                          prereqs = arm_prereqs,
                          actions = actions,
                          properties = properties,
-                         custom_timestamp = custom_timestamp)
+                         custom_last_edited_time = custom_last_edited_time)
           taskarm_get(this_taskarm_name, exists = TRUE)$invoke(debug = debug)
         }
       }
@@ -300,8 +300,8 @@ Task <- setRefClass(
       to_add <- !(names(new) %in% names(properties))
       properties <<- c(properties, new[to_add])
     },
-    set_custom_timestamp = function(f){
-      custom_timestamp[[1]] <<- f
+    set_custom_last_edited_time = function(f){
+      custom_last_edited_time[[1]] <<- f
     }
   )
 )
