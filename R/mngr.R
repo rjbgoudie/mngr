@@ -80,9 +80,11 @@ run <- function(name = "default", debug = FALSE){
   assign("jobids", c(), envir = slurm_env)
   with_dir(dir_run_branch(check = TRUE), {
     mngrfile <- find_mngrfile(getwd())
+    message("Loading Mngrfile")
     source(mngrfile)
 
     # Preload all state files, to avoid slow access to modified date etc
+    message("Loading state files")
     state_load_all()
 
     name_expr <- substitute(name)
@@ -91,7 +93,9 @@ run <- function(name = "default", debug = FALSE){
     }
     task_obj <- task_get(name)
     lapply(task_env$post_run_list, eval)
+    message("Building job list")
     task_obj$invoke(debug = debug)
+    message("Running jobs")
     run_jobs(debug = debug)
 
     # this is the wrong place for this
