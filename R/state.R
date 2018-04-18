@@ -3,7 +3,7 @@ state_load_all <- function(){
   fs::dir_create(state_dir)
 
   info <- fs::dir_info(state_dir)
-  info$file <- path_file(info$path)
+  info$file <- as.character(fs::path_file(info$path))
 
   state_env$info <- info[, c("file", "modification_time")]
   state_env$state_dir <- state_dir
@@ -32,8 +32,8 @@ state_update_last_invoked_time <- function(taskarm_name){
     state_env$info[state_env$info$file == taskarm_name, "modification_time"] <-
       Sys.time()
   } else {
-    state_env$info <- rbind(state_env$info,
-                            list(file = taskarm_name,
-                                 modification_time = Sys.time()))
+    new_row <- tibble::data_frame(file = taskarm_name,
+                                  modification_time = Sys.time())
+    state_env$info <- dplyr::bind_rows(state_env$info, new_row)
   }
 }
