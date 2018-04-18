@@ -90,6 +90,7 @@ SlurmJob <- setRefClass(
       slurm_log_file <- paste0("%A.%a-", name, ".txt")
       file.path(slurm_log_dir, slurm_log_file)
     },
+
     execute = function(debug = FALSE){
       action_class <- sapply(actions, class)
       lapply(actions[action_class == "{"], eval.parent)
@@ -100,9 +101,11 @@ SlurmJob <- setRefClass(
         action(.self)
       })
     },
+
     set_jobid = function(x){
       jobid <<- x
     },
+
     jobid_prereqs = function(){
       out <- c()
       if (length(prereqs) > 0){
@@ -117,6 +120,7 @@ SlurmJob <- setRefClass(
       }
       out
     },
+
     get_memory = function(){
       if (length(properties$memory) > 0){
         properties$memory
@@ -124,6 +128,7 @@ SlurmJob <- setRefClass(
         3840 #3993
       }
     },
+
     get_cores = function(){
       if (length(properties$cores) > 0){
         properties$cores
@@ -131,6 +136,7 @@ SlurmJob <- setRefClass(
         1
       }
     },
+
     last_run_time = function(){
       path <- r_log_latest_file()
       if (file.exists(path)){
@@ -139,6 +145,7 @@ SlurmJob <- setRefClass(
         NULL
       }
     },
+
     predict_run_time = function(){
       if (length(properties$hours) > 0){
         sprintf("%d:00:00", properties$hours)
@@ -160,6 +167,7 @@ SlurmJob <- setRefClass(
         }
       }
     },
+
     r_log_latest_file = function(){
       r_log_latest_dir <- mngr_option_dir_r_logs_latest()(fs::path_tidy(getwd()))
       fs::dir_create(r_log_latest_dir)
@@ -167,6 +175,7 @@ SlurmJob <- setRefClass(
       r_log_latest_file <- paste0(name, ".Rout")
       file.path(r_log_latest_dir, r_log_latest_file)
     },
+
     r_log_specific_file = function(){
       r_log_dir <- mngr_option_dir_r_logs()(fs::path_tidy(getwd()))
       fs::dir_create(r_log_dir)
@@ -174,6 +183,7 @@ SlurmJob <- setRefClass(
       r_log_specific_file <- paste0("\\${SLURM_JOB_ID}__", r_log_latest_file)
       file.path(r_log_dir, r_log_specific_file)
     },
+
     jobname = function(){
       paste(name, git_short_sha(), sep = "__")
     }

@@ -109,9 +109,11 @@ Task <- setRefClass(
       arms_cached <<- c(FALSE, FALSE)
       initFields(...)
     },
+
     is_dummy = function(){
       length(actions) == 0
     },
+
     taskarm_name = function(arm_index){
       if (is_dummy()){
         name
@@ -129,6 +131,7 @@ Task <- setRefClass(
         paste(name, arm_str, sep = "__")
       }
     },
+
     enhance = function(prereqs_new = NULL, actions_new = NULL){
       if (!is.null(prereqs_new)){
         prereqs <<- c(prereqs_new, prereqs)
@@ -137,6 +140,7 @@ Task <- setRefClass(
         actions <<- c(list(actions_new), actions)
       }
     },
+
     arms = function(expand_split = TRUE){
       if (!arms_cached[expand_split + 1]){
         arms_list <- task_env$arms_list
@@ -200,9 +204,11 @@ Task <- setRefClass(
         arms_cache[[expand_split + 1]]
       }
     },
+
     arm = function(arm_index){
       arms()[[arm_index]]
     },
+
     which_arms = function(to_match){
       arm_indicators <- sapply(arms(), function(arm){
         comparable_arm_names <- names(arm)[names(arm) %in% names(to_match)]
@@ -213,6 +219,7 @@ Task <- setRefClass(
       })
       which(arm_indicators)
     },
+
     prereq_taskarm_names = function(arm_index,
                                     arm_values = arm(arm_index = arm_index),
                                     debug = FALSE){
@@ -234,6 +241,7 @@ Task <- setRefClass(
                 " are: ", paste(out, collapse = ","))
       out
     },
+
     invoke = function(debug = FALSE) {
       if (!already_invoked){
         already_invoked <<- TRUE
@@ -272,21 +280,26 @@ Task <- setRefClass(
         message(name, " invoked")
       }
     },
+
     prereq_tasks = function(){
       prereq_tasks <- sapply(prereqs, task_get)
       Filter(not.null, prereq_tasks)
     },
+
     invoke_prereqs = function(debug = FALSE){
       debug_msg(debug, "Running prereqs for ", name)
       tasks <- prereq_tasks()
       lapply(tasks, function(task) task$invoke(debug = debug))
     },
+
     add_merge = function(new_merge){
       merge <<- c(merge, new_merge)
     },
+
     add_split = function(new_split){
       split <<- c(split, new_split)
     },
+
     get_throttle = function(){
       if (length(properties$throttle) > 0){
         properties$throttle
@@ -294,6 +307,7 @@ Task <- setRefClass(
         task_env$config$throttle %||% mngr_default_throttle
       }
     },
+
     set_properties = function(...){
       new <- list(...)
       to_replace <- match(names(new), names(properties))
@@ -301,9 +315,11 @@ Task <- setRefClass(
       to_add <- !(names(new) %in% names(properties))
       properties <<- c(properties, new[to_add])
     },
+
     set_filename_function = function(f){
       filename_function[[1]] <<- f
     },
+
     get_filename = function(){
       filename_function[[1]](name)
     }

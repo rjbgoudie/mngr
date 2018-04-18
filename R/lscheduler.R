@@ -155,9 +155,11 @@ LSchedulerJob <- setRefClass(
         action(.self)
       })
     },
+
     set_jobid = function(x){
       jobid <<- x
     },
+
     jobid_prereqs = function(){
       out <- c()
       if (length(prereqs) > 0){
@@ -172,6 +174,7 @@ LSchedulerJob <- setRefClass(
       }
       out
     },
+
     last_run_time = function(){
       path <- r_log_latest_file()
       if (file.exists(path)){
@@ -180,12 +183,14 @@ LSchedulerJob <- setRefClass(
         NULL
       }
     },
+
     r_log_latest_file = function(){
       r_log_latest_dir <- mngr_option_dir_r_logs_latest()(fs::path_tidy(getwd()))
       fs::dir_create(r_log_latest_dir)
       r_log_latest_file <- paste0(name, ".Rout")
       file.path(r_log_latest_dir, r_log_latest_file)
     },
+
     r_log_specific_file = function(){
       r_log_dir <- mngr_option_dir_r_logs()(fs::path_tidy(getwd()))
       fs::dir_create(r_log_dir)
@@ -194,6 +199,7 @@ LSchedulerJob <- setRefClass(
       r_log_specific_file <- paste0(jobid, "__", r_log_latest_file)
       file.path(r_log_dir, r_log_specific_file)
     },
+
     jobname = function(){
       paste(name, git_short_sha(), sep = "__")
     }
