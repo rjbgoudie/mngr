@@ -15,7 +15,7 @@ arms_factorial <- function(...){
 #' All arms of a task
 #'
 #' If expand_split = TRUE, then split arms are treated as standard arms
-#' If expand_split = FALSE, then split arms are repeated nrow(expand.grid)
+#' If expand_split = FALSE, then split arms are repeated nrow(expand_grid)
 #' times
 #'
 #' @param task A task name
@@ -31,7 +31,7 @@ arms_all <- function(task, expand_split = TRUE){
 #' Create a character name for a particular arm
 #'
 #' If expand_split = TRUE, then split arms are treated as standard arms
-#' If expand_split = FALSE, then split arms are repeated nrow(expand.grid)
+#' If expand_split = FALSE, then split arms are repeated nrow(expand_grid)
 #' times
 #'
 #' NOTE THIS SEEMS TO DUPLICATE taskarm_name??
@@ -62,7 +62,7 @@ arm_name_merge <- function(){
   o <- order(names(arm))
   arm <- arm[o]
   arml <- lapply(arm, as.character)
-  grid <- do.call("expand.grid", arml)
+  grid <- do.call("expand_grid", arml)
   apply(grid, 1, function(arm){
     arm_values <- sapply(arm, paste, collapse = ",")
     arm_names <- names(arm)
@@ -113,4 +113,8 @@ read_rds_merge <- function(...){
     message("The following paths don't exist:", all_paths[!paths_exist])
   }
   lapply(all_paths, readRDS)
+}
+
+expand_grid <- function(...){
+  expand.grid(..., KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
 }

@@ -145,9 +145,9 @@ Task <- setRefClass(
       if (!arms_cached[expand_split + 1]){
         arms_list <- task_env$arms_list
 
-        # 1. merged arms are never expanded via expand.grid
+        # 1. merged arms are never expanded via expand_grid
         # 2. if expand_split = TRUE, then split arms are treated as standard arms
-        # 3. if expand_split = FALSE, then split arms are repeated nrow(expand.grid)
+        # 3. if expand_split = FALSE, then split arms are repeated nrow(expand_grid)
         #    times
 
         if (expand_split){
@@ -159,7 +159,8 @@ Task <- setRefClass(
         which_arms_expand <- !(names(arms_list) %in% dont_expand)
         which_arms_merge <- names(arms_list) %in% merge
 
-        arms_base <- do.call("expand.grid", arms_list[which_arms_expand])
+        arms_base <- do.call("expand_grid",
+                             arms_list[which_arms_expand])
         out <- lapply(seq_len(nrow(arms_base)), function(i){
           as.list(arms_base[i,, drop = FALSE])
         })
@@ -169,7 +170,8 @@ Task <- setRefClass(
 
           if (sum(which_arms_split) > 0){
             arms_split <- arms_list[which_arms_split]
-            arms_split_expanded <- do.call("expand.grid", arms_split)
+            arms_split_expanded <- do.call("expand_grid",
+                                           arms_split)
             arms_split_expanded_count <- nrow(arms_split_expanded)
 
             if (length(out) > 0){
