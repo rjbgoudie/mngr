@@ -19,10 +19,11 @@ mngr_config <- function(...){
 mngr_option_dir_run <- function(){
   default <- function(dir){
     home <- Sys.getenv("HOME")
+    homerun <- fs::path(home, "run")
     git_toplevel <- dir_git_toplevel(dir = dir, check = FALSE)
     git_toplevel_name <- basename(git_toplevel)
     # if already in a run, just return supplied dir
-    if (grepl(p, dir)){
+    if (grepl(homerun, dir)){
       git_toplevel
     } else {
       fs::path(home, "run", git_toplevel_name)
