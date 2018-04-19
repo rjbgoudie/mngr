@@ -14,42 +14,23 @@ arms_factorial <- function(...){
 
 #' All arms of a task
 #'
-#' If expand_split = TRUE, then split arms are treated as standard arms
-#' If expand_split = FALSE, then split arms are repeated nrow(expand_grid)
-#' times
-#'
 #' @param task A task name
-#' @param expand_split Determine the handling of split arms
 #' @return A list of all arms for the task
-arms_all <- function(task, expand_split = TRUE){
+arms_all <- function(task){
   task_obj <- task_get(task, exists = TRUE)
-  task_obj$arms(expand_split = expand_split)
+  task_obj$arms_to_invoke()
 }
 
 #' Unique name for arm
 #'
 #' Create a character name for a particular arm
 #'
-#' If expand_split = TRUE, then split arms are treated as standard arms
-#' If expand_split = FALSE, then split arms are repeated nrow(expand_grid)
-#' times
-#'
 #' NOTE THIS SEEMS TO DUPLICATE taskarm_name??
 #'
-#' @param expand_split Determine the handling of split arms
 #' @return A character vector of length 1, the arm_name
-arm_name <- function(expand_split = TRUE){
-  arms <- arms_all(.task, expand_split = expand_split)
-
-  arm <- arms[[.arm]]
-  o <- order(names(arm))
-  arm <- arm[o]
-  arm_values <- sapply(arm, paste, collapse = "-")
-  arm_values_long <- nchar(arm_values) > 10
-  arm_values[arm_values_long] <- sapply(arm_values[arm_values_long],
-                                        digest::digest, algo = "xxhash32")
-  arm_names <- names(arm)
-  paste(arm_names, arm_values, sep = "--",  collapse = "__")
+arm_name <- function(task, splitting = FALSE){
+  task_obj <- task_get(task, exists = TRUE)
+  task_obj$arm_ids(splitting = splitting)[.arm]
 }
 
 #' The arm names prior to merging

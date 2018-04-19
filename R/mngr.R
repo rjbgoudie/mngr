@@ -1,7 +1,7 @@
 #' Mngr
 #' @docType package
 #' @name mngr
-#' @import dplyr tibble tidyr fs
+#' @import dplyr tibble tidyr fs purrr
 NULL
 
 # This environment contains the main variables

@@ -37,10 +37,10 @@ startup <- function(){
   mngrfile <- find_mngrfile(getwd())
   source(mngrfile)
   arms <- arms_all(.task)
-  if (.arm > length(arms)){
-    stop("Can't find arm ", .arm, "; there are only ", length(arms), " arms")
+  if (.arm > nrow(arms)){
+    stop("Can't find arm ", .arm, "; there are only ", nrow(arms), " arms")
   }
-  arm <- arms[[.arm]]
+  arm <- lapply(arms[.arm, ], unlist, recursive = FALSE)
   attach(arm)
   cat("\nArm values\n")
   cat(paste(pretty_print_arm_values(arm), collapse = "\n"), "\n\n")

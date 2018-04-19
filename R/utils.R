@@ -134,3 +134,11 @@ get_terminal_width <- function(){
 have_tee <- function(){
   Sys.which("tee") != ""
 }
+
+append_unless_na <- function(x, y){
+  if (!is.na(y)){
+    append(x, y)
+  } else {
+    x
+  }
+}

@@ -23,6 +23,14 @@ state_last_invoked <- function(taskarm_name){
   }
 }
 
+state_last_invoked_all <- function(taskarm_names){
+  if (length(taskarm_names) == 0){
+    MNGR_UNIX_EPOCH
+  } else {
+    do.call(c, lapply(taskarm_names, state_last_invoked))
+  }
+}
+
 state_update_last_invoked_time <- function(taskarm_name){
   state_file <- fs::path(state_env$state_dir, taskarm_name)
   fs::file_create(state_file)

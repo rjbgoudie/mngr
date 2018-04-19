@@ -94,11 +94,13 @@ Task <- setRefClass(
     actions = "list",
     already_invoked = "logical",
     merge = "list",
-    split = "list",
+    split = "character",
     properties = "list",
     filename_function = "list",
     arms_cache = "list",
-    arms_cached = "logical"
+    arms_cached = "logical",
+    job_ids_cache = "list",
+    job_ids_cached = "logical"
   ),
   methods = list(
     initialize = function(...){
@@ -106,33 +108,18 @@ Task <- setRefClass(
       filename_function <<- list(function(name){""})
       actions <<- list()
       prereqs <<- character(0)
-      arms_cached <<- c(FALSE, FALSE)
+      arms_cached <<- FALSE
+      job_ids_cached <<- FALSE
       initFields(...)
     },
 
     is_dummy = function(){
+      "Returns true if the Task has no actions"
       length(actions) == 0
     },
 
-    taskarm_name = function(arm_index){
-      if (is_dummy()){
-        name
-      } else {
-        arm <- arms()[[arm_index]]
-        o <- order(names(arm))
-        arm <- arm[o]
-
-        arm_values <- sapply(arm, paste, collapse = "-")
-        arm_values_long <- nchar(arm_values) > 10
-        arm_values[arm_values_long] <- sapply(arm_values[arm_values_long],
-                                              digest::digest, algo = "xxhash32")
-        arm_names <- names(arm)
-        arm_str <- paste(arm_names, arm_values, sep = "--",  collapse = "__")
-        paste(name, arm_str, sep = "__")
-      }
-    },
-
     enhance = function(prereqs_new = NULL, actions_new = NULL){
+      "Add a new action or prerequisite to the Task"
       if (!is.null(prereqs_new)){
         prereqs <<- c(prereqs_new, prereqs)
       }
@@ -141,145 +128,187 @@ Task <- setRefClass(
       }
     },
 
-    arms = function(expand_split = TRUE){
-      if (!arms_cached[expand_split + 1]){
-        arms_list <- task_env$arms_list
+    arms_list_with_default = function(){
+      "Returns the arms list, with MNGR_DEFAULT_ARM added.
+       This dummy is a placeholder to make many calculations easier, and to
+       allow there to be no arms at all"
+      c(list(MNGR_DEFAULT_ARM = 0), task_env$arms_list)
+    },
 
-        # 1. merged arms are never expanded via expand_grid
-        # 2. if expand_split = TRUE, then split arms are treated as standard arms
-        # 3. if expand_split = FALSE, then split arms are repeated nrow(expand_grid)
-        #    times
+    arms_to_invoke = function(){
+      "Returns tibble with arms that should be invoked as rows. Each arm
+       variable is a column, and the corresponding values are recorded. Columns
+       (arms) are sorted alphabetically"
 
-        if (expand_split){
-          dont_expand <- merge
-        } else {
-          dont_expand <- c(merge, split)
-        }
-
-        which_arms_expand <- !(names(arms_list) %in% dont_expand)
-        which_arms_merge <- names(arms_list) %in% merge
-
-        arms_base <- do.call("expand_grid",
-                             arms_list[which_arms_expand])
-        out <- lapply(seq_len(nrow(arms_base)), function(i){
-          as.list(arms_base[i,, drop = FALSE])
-        })
-
-        if (!expand_split){
-          which_arms_split <- names(arms_list) %in% split
-
-          if (sum(which_arms_split) > 0){
-            arms_split <- arms_list[which_arms_split]
-            arms_split_expanded <- do.call("expand_grid",
-                                           arms_split)
-            arms_split_expanded_count <- nrow(arms_split_expanded)
-
-            if (length(out) > 0){
-              out <- lapply(seq_along(out), function(i){
-                lapply(seq_len(arms_split_expanded_count), function(j){
-                  append(out[[i]], arms_split)
-                })
-              })
-              out <- unlist(out, recursive = FALSE)
-            } else {
-              out <- lapply(seq_len(arms_split_expanded_count), function(i){
-                arms_split
-              })
-            }
-          }
-        }
-
-        if (sum(which_arms_merge) > 0){
-          arms_merge <- arms_list[which_arms_merge]
-
-          if (length(out) > 0){
-            values <- lapply(seq_along(out), function(x) arms_merge)
-            out <- mapply(append, out, values, SIMPLIFY = FALSE)
-          } else {
-            out <- list(arms_merge)
-          }
-        }
-        arms_cached[expand_split + 1] <<- TRUE
-        arms_cache[[expand_split + 1]] <<- out
-        out
+      if (arms_cached){
+        arms_cache[[1]]
       } else {
-        arms_cache[[expand_split + 1]]
+        arms_list <- arms_list_with_default()
+
+        # merged arms are never invoked
+        arm_names_to_invoke <- setdiff(names(arms_list), merge)
+        arms <- do.call("expand_grid", arms_list[arm_names_to_invoke])
+
+        # Each invoked arm has ALL values of ALL merged arms
+        if (length(merge) > 0){
+          arms_merge <- arms_list[names(arms_list) %in% merge]
+
+          # list with component for each merge arm
+          # Each component contains all values of that arm repeated for each for
+          # of arms
+          arms_merge_list <- map(arms_merge, ~rep(list(.), nrow(arms)))
+
+          arms <- bind_cols(arms, list(arms_merge_list))
+        }
+
+        # sort arms
+        o <- order(colnames(arms))
+        arms_cached <<- TRUE
+        (arms_cache[[1]] <<- arms[, o])
       }
     },
 
-    arm = function(arm_index){
-      arms()[[arm_index]]
+    arms_when_splitting = function(){
+      "When loading data from a merged task, we must merge all arm names that
+       are being split over. i.e. we replace the split arm values with ALL arm
+       values for that arm"
+
+      arms_local <- arms_to_invoke()
+      for (s in split){
+        arms_local[, s] <- list(arms_list_with_default()[s])
+      }
+      arms_local
     },
 
-    which_arms = function(to_match){
-      arm_indicators <- sapply(arms(), function(arm){
-        comparable_arm_names <- names(arm)[names(arm) %in% names(to_match)]
-        are_equal <- sapply(comparable_arm_names, function(x){
-          length(intersect(arm[[x]], to_match[[x]])) > 0
-        })
-        all(are_equal)
-      })
-      which(arm_indicators)
+    arm_ids = function(splitting = FALSE){
+      "Return a character vector of arm id strings. These take the form
+       ARM1NAME--ARM1VALUE__ARM2NAME--ARM2VALUE etc, although if a
+       armvalue is long, it is converted to a hash"
+
+      if (splitting){
+        arms <- arms_when_splitting()
+      } else {
+        arms <- arms_to_invoke()
+      }
+
+      # Build strings of the form:
+      # ARM1NAME--ARM1VALUE__ARM2NAME--ARM2VALUE etc
+      arms %>%
+        select(-MNGR_DEFAULT_ARM) %>%
+        rowwise %>%
+        summarize_all(paste_or_hash) %>%
+        rowwise %>%
+        do(tibble(arm_id_string =
+                    paste(names(.), ., sep = "--", collapse = "__"))) %>%
+        pull(arm_id_string)
     },
 
-    prereq_taskarm_names = function(arm_index,
-                                    arm_values = arm(arm_index = arm_index),
-                                    debug = FALSE){
-      tasks <- prereq_tasks()
-      out <- lapply(tasks, function(task){
-        if (task$is_dummy()){
-          task$prereq_taskarm_names(arm_index, arm_values = arm_values)
-        } else {
-          prereq_arms <- task$which_arms(arm_values)
-          lapply(prereq_arms, function(arm_index){
-            task$taskarm_name(arm_index)
-          })
+    job_ids = function(){
+      "Return a character vector of job id strings. These take the form
+       TASKNAME__ARM1NAME--ARM1VALUE__ARM2NAME--ARM2VALUE etc, although if a
+       armvalue is long, it is converted to a hash"
+      if (job_ids_cached){
+        job_ids_cache[[1]]
+      } else {
+        job_ids_cached <<- TRUE
+        (job_ids_cache[[1]] <<- paste(name,
+                                      arm_ids(splitting = FALSE),
+                                      sep = "__"))
+      }
+    },
+
+    throttle_job_ids = function(){
+      "Get the job_id of the (throttle)th previous arm value, so that it can be
+       added as a prerequisite to allow for throttling"
+      throttle <- get_throttle()
+      arms_local <- arms_to_invoke()
+      arm_seq <- seq_len(nrow(arms_local))
+
+      indicies <- ((arm_seq %/% throttle) - 1) * throttle + arm_seq %%
+        throttle
+      indicies <- ifelse(indicies >= 1, indicies, NA)
+      job_ids()[indicies]
+    },
+
+    which_jobs_involve = function(match){
+      "For each row of a given data_frame arm values (match), identify which
+       arms in THIS task involve the arm values in that match row. "
+
+      this <- arms_to_invoke()
+      common_cols <- intersect(colnames(this), colnames(match))
+      this <- this[, common_cols]
+      result <- array(dim = c(nrow(match), nrow(this), ncol(this)))
+
+      for (i in 1:nrow(match)){
+        for (r in 1:nrow(this)){
+          for (c in 1:ncol(this)){
+            mic <- unlist(match[i, c])
+            trc <- unlist(this[r, c])
+            result[i, r, c] <- length(intersect(mic, trc)) > 0
+          }
         }
+      }
+
+      # all arms (common_cols) must have at least something in common
+      involved <- rowSums(result, dims = 2) == length(common_cols)
+
+      # For each row of the match data_frame, which rows in this are involved
+      indicies_list <- apply(involved, 1, which)
+
+      # Convert these indicies to job_ids
+      lapply(indicies_list, function(index){
+        as.list(job_ids()[index])
       })
-      out <- as.character(unlist(out))
-      debug_msg(debug,
-                "Prereqs_taskarms for ", name,
-                " arm_index ", arm_index,
-                " are: ", paste(out, collapse = ","))
-      out
     },
 
-    invoke = function(debug = FALSE) {
+    build_jobs = function(){
+      arms_local <- arms_to_invoke()
+      jobs_df <- bind_cols(arms_local,
+                           tibble(prereq_job_ids = prereq_job_ids()))
+
+      jobs_df <- jobs_df %>%
+        mutate(task_name = name,
+               task_filename = get_filename(),
+               last_edited = task_last_edited_all(task_filename),
+               arm_index = row_number(),
+               job_ids = job_ids(),
+               ever_invoked = state_ever_invoked(job_ids),
+               last_invoked = state_last_invoked_all(job_ids))
+
+      jobs_df %>%
+        mutate(edited_since_last_invoked = last_edited > last_invoked,
+               most_recently_invoke_prereq =
+                 do.call(c, map(prereq_job_ids, ~max(state_last_invoked_all(.)))),
+               prereq_invoked_after_last_invoked = most_recently_invoke_prereq > last_invoked,
+               needed = case_when(!ever_invoked ~ TRUE,
+                                  edited_since_last_invoked ~ TRUE,
+                                  prereq_invoked_after_last_invoked ~ TRUE,
+                                  TRUE ~ FALSE))
+    },
+
+    invoke = function(debug = FALSE){
+      "Invoke this task and its prerequisities, unless it has already been
+       invoked"
       if (!already_invoked){
         already_invoked <<- TRUE
 
         debug_msg(debug, "Invoking prerequisties for ", name)
         invoke_prereqs(debug = debug)
 
-        arms_count <- 1
-        if (length(actions) > 0){
-          arms <- arms()
-          arms_count <- length(arms)
-        }
+        jobs_needed <- build_jobs() %>%
+          filter(needed)
 
-        throttle <- get_throttle()
+        jobs_needed %>%
+          rowwise %>%
+          do(null = state_update_last_invoked_time(.$job_ids),
+             null = job_create(name = .$job_ids,
+                               basename = .$task_name,
+                               arm_index = .$arm_index,
+                               actions = actions,
+                               prereqs = as.character(unlist(.$prereq_job_ids)),
+                               properties = properties))
 
-        debug_msg(debug, "Building ", arms_count, " arms for ", name)
-        for (arm_index in seq_len(arms_count)){
-
-          arm_prereqs <- prereq_taskarm_names(arm_index, debug = debug)
-
-          throttle_arm_dependency <- throttle_arm_dependency(arm_index, throttle)
-          if (!is.null(throttle_arm_dependency)){
-            arm_prereqs <- c(arm_prereqs, taskarm_name(throttle_arm_dependency))
-          }
-
-          this_taskarm_name <- taskarm_name(arm_index)
-          taskarm_create(task_name = name,
-                         taskarm_name = this_taskarm_name,
-                         arm_index = arm_index,
-                         prereqs = arm_prereqs,
-                         actions = actions,
-                         properties = properties,
-                         task_filename = get_filename())
-          taskarm_get(this_taskarm_name, exists = TRUE)$invoke(debug = debug)
-        }
-        message(name, " invoked")
+        message(nrow(jobs_needed), " arms of ", name, " needed")
       }
     },
 
@@ -292,6 +321,40 @@ Task <- setRefClass(
       debug_msg(debug, "Running prereqs for ", name)
       tasks <- prereq_tasks()
       lapply(tasks, function(task) task$invoke(debug = debug))
+    },
+
+    prereq_job_ids = function(){
+      "Return a list, each component corresponds to an arm of this task"
+
+      arms_local <- arms_to_invoke()
+      arm_seq <- seq_len(nrow(arms_local))
+
+      prerequisities <- prereq_tasks()
+      names(prerequisities) <- rep("prereq_taskarms",
+                                   times = length(prerequisities))
+
+      if (length(prerequisities) == 0){
+        result <- map(arm_seq, function(i) list())
+      } else {
+        # A list each component of which corresponds to a task.
+        # Each component contains a component corresponding to each arm of this
+        # task
+        prereq_jobids_by_prereq <- lapply(prerequisities, function(task){
+          if (task$is_dummy()){
+            task$prereq_job_ids()
+          } else {
+            task$which_jobs_involve(arms_local)
+          }
+        })
+        # Flip so that prerequisities tasks are nested within arms
+        prereq_jobids_by_arm <- transpose(prereq_jobids_by_prereq)
+
+        # Then for each arm, unlist to remove task level
+        result <- lapply(prereq_jobids_by_arm, unlist, recursive = FALSE)
+      }
+
+      # Add (throttle)th previous arm, so as to throttle
+      map2(result, throttle_job_ids(), append_unless_na)
     },
 
     add_merge = function(new_merge){
@@ -328,11 +391,13 @@ Task <- setRefClass(
   )
 )
 
-throttle_arm_dependency <- function(arm_index,  throttle){
-  index <- ((arm_index %/% throttle) - 1) * throttle + arm_index %% throttle
-  if (index >= 1){
-    index
-  } else {
-    NULL
-  }
+# concatenate arm values (separated by "-"), unless the value is
+# very long, in which case we hash the concatenated string. This is
+# required because filesystems do not allow for very long file or
+# directory names
+paste_or_hash <- function(...){
+  p <- paste(unlist(...), collapse = "-")
+  is_long <- nchar(p) > 10
+  p[is_long] <- sapply(p[is_long], digest::digest, algo = "xxhash32")
+  unlist(p)
 }
