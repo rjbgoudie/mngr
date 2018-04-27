@@ -36,8 +36,10 @@ mngr_option_use_tempfile <- function(){
   getOption("mngr_use_tempfile") %||% FALSE
 }
 
-mngr_option_cluster_path <- function(){
-  getOption("mngr_cluster_path")
+#' Path to the directory containing Slurm submit script
+mngr_option_slurm_submit_path <- function(){
+  default <- "~/.mngr/slurm/"
+  getOption("mngr_slurm_submit_path") %||% default
 }
 
 mngr_option_dir_output <- function(){

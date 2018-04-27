@@ -60,6 +60,9 @@ There are several file locations relevant to mngr:
    directory. By default $HOME/path/to/$GIT_TOPLEVEL/ will be converted to
    $HOME/run/$GIT_TOPLEVEL.
 
+   Note that the function must return the supplied dir if dir is in the run
+   directory already.
+
 3. The "output" location: this is where all of the plots, rds files, and logs
    are stored. You may wish for this to on a separate drive to the R source,
    since the output may be large and can be reproduced, so you might not need to
@@ -68,8 +71,20 @@ There are several file locations relevant to mngr:
    The location of this is set by the option ```mngr_dir_output```.
 
    This should be a function that converts a path (within the run directory) to
-   the corresponding path in the results location. By default, the results will
-   be saved within the run directory
+   the corresponding path in the results location. By default, mngr_dir_output
+   is set so that the results will be saved within the run directory
+
+These settings should be made in ```~/.mngr/config.R```. So that you can use
+```mngr``` interactively, you will also want to source this config file in
+your ```.Rprofile```
+
+Slurm
+-----
+
+Submit scripts should go in ```~/.mngr/slurm/QUEUE``` where QUEUE is the name
+of the queue.
+
+If no queue is specified in an Mngrfile, ```~/.mngr/slurm/default``` will be used
 
 Installation
 ------------

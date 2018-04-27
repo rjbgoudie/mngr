@@ -5,7 +5,7 @@ slurm_r_job <- function(task){
 
   slurm_log_path <- task$slurm_file()
 
-  queue <- task_env$config$queue %||% "sand"
+  queue <- task_env$config$queue %||% "default"
 
   # if any shared arms, then depend on all prereqs, not just the matching
   # index
@@ -40,7 +40,7 @@ slurm_r_job <- function(task){
            " --nodes=1",
            " --time=", run_time,
            " --output=", slurm_log_path,
-           " ", mngr_option_cluster_path(), "/mngr_slurm_submit.", queue,
+           " ", mngr_option_slurm_submit_path(), "/", queue,
            "\n")
   jobid <- system(incant, intern = TRUE)
   time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
