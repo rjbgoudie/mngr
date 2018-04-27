@@ -40,37 +40,37 @@ mngr_option_cluster_path <- function(){
   getOption("mngr_cluster_path")
 }
 
-mngr_option_dir_results <- function(){
+mngr_option_dir_output <- function(){
   default <- function(dir){
     dir
   }
-  getOption("mngr_dir_results") %||% default
+  getOption("mngr_dir_output") %||% default
 }
 
 mngr_option_dir_slurm_logs <- function(){
   default <- function(dir){
-    fs::path(mngr_option_dir_results()(dir), "logs", "slurm")
+    fs::path(mngr_option_dir_output()(dir), "logs", "slurm")
   }
   getOption("mngr_dir_slurm_logs") %||% default
 }
 
 mngr_option_dir_r_logs_latest <- function(){
   default <- function(dir){
-    fs::path(mngr_option_dir_results()(dir), "logs", "r-latest")
+    fs::path(mngr_option_dir_output()(dir), "logs", "r-latest")
   }
   getOption("mngr_dir_r_logs_latest") %||% default
 }
 
 mngr_option_dir_r_logs <- function(){
   default <- function(dir){
-    fs::path(mngr_option_dir_results()(dir), "logs", "r")
+    fs::path(mngr_option_dir_output()(dir), "logs", "r")
   }
   getOption("mngr_dir_r_logs") %||% default
 }
 
 mngr_option_dir_state <- function(){
   default <- function(dir){
-    fs::path(mngr_option_dir_results()(dir), "state")
+    fs::path(mngr_option_dir_output()(dir), "state")
   }
   getOption("mngr_dir_state") %||% default
 }

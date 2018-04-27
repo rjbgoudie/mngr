@@ -13,7 +13,7 @@ file_path <- function(file,
                       directory = "etc",
                       extension = "",
                       splitting = FALSE){
-  base <- mngr_option_dir_results()(dir_run_branch())
+  base <- mngr_option_dir_output()(dir_run_branch())
   dir <- fs::path(base, directory, arm)
   fs::dir_create(dir)
   fs::path(dir, file, ext = extension)
