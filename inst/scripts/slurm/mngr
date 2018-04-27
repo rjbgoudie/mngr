@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+jobids=$(nice -n 19 Rscript --no-init-file -e "source(\"~/.mngr/config.R\"); args <- commandArgs(TRUE); library(mngr, quietly = T, warn.conflicts = FALSE); out <- if (length(args) == 0){ run(debug = F) } else {run(name = args[[1]], debug = F)}; cat(out)" $1)
+result=$?
+if [ $result -eq 0 ]; then
+    if [ -n "$jobids" ]; then
+        echo "$jobids"
+        jobids=$(echo "$jobids" | tail -1)
+        mngr-monitor "$jobids"
+    fi
+fi

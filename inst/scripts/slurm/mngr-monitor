@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# http://stackoverflow.com/a/4679081
+mngr_watchlast () {
+    local cols=($(tput cols))
+    local jobids=$1
+    local start=0
+    local up=$(tput cuu1)$(tput el) IFS=$'\n' lines
+
+    lines=($(Rscript --no-init-file -e "mngr:::monitor()" "$jobids" "$cols" 2>&1))
+    #mapfile -t lines < <( Rscript --no-init-file -e "mngr:::monitor()" "$jobids" 2>&1)
+
+    end=${#lines[@]}
+    echo "${lines[*]:$start:$end}"
+    while true
+    do
+        new_lines=($(Rscript --no-init-file -e "mngr:::monitor()" "$jobids" "$cols" 2>&1))
+        #mapfile -t new_lines < <( Rscript --no-init-file -e "mngr:::monitor()" "$jobids" 2>&1)
+
+        # echo ${#lines[@]}
+        # echo ${#new_lines[@]}
+        # echo "\n"
+        printf "%.0s$up" "${lines[@]:$start:$end}"
+
+        # lines is an ARRAY so to copy we have to do this
+        # http://stackoverflow.com/a/24323275
+        lines=("${new_lines[@]}")
+        end=${#lines[@]}
+        echo "${lines[*]:$start:$end}"
+        sleep 2
+        # go up and clear each line
+    done
+}
+#tput smcup
+mngr_watchlast "$1"
+#tput rmcup

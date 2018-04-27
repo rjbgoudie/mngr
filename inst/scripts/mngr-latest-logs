@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+Rscript --no-init-file -e "library(mngr, quietly = T, warn.conflicts = FALSE); latest_logs()"
