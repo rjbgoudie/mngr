@@ -156,7 +156,7 @@ Task <- setRefClass(
           # list with component for each merge arm
           # Each component contains all values of that arm repeated for each for
           # of arms
-          arms_merge_list <- map(arms_merge, ~rep(list(.), nrow(arms)))
+          arms_merge_list <- purrr::map(arms_merge, ~rep(list(.), nrow(arms)))
 
           arms <- bind_cols(arms, list(arms_merge_list))
         }
@@ -278,7 +278,7 @@ Task <- setRefClass(
       jobs_df %>%
         mutate(edited_since_last_invoked = last_edited > last_invoked,
                most_recently_invoke_prereq =
-                 do.call(c, map(prereq_job_ids, ~max(state_last_invoked_all(.)))),
+                 do.call(c, purrr::map(prereq_job_ids, ~max(state_last_invoked_all(.)))),
                prereq_invoked_after_last_invoked = most_recently_invoke_prereq > last_invoked,
                needed = case_when(!ever_invoked ~ TRUE,
                                   edited_since_last_invoked ~ TRUE,
@@ -334,7 +334,7 @@ Task <- setRefClass(
                                    times = length(prerequisities))
 
       if (length(prerequisities) == 0){
-        result <- map(arm_seq, function(i) list())
+        result <- purrr::map(arm_seq, function(i) list())
       } else {
         # A list each component of which corresponds to a task.
         # Each component contains a component corresponding to each arm of this
@@ -347,14 +347,14 @@ Task <- setRefClass(
           }
         })
         # Flip so that prerequisities tasks are nested within arms
-        prereq_jobids_by_arm <- transpose(prereq_jobids_by_prereq)
+        prereq_jobids_by_arm <- purrr::transpose(prereq_jobids_by_prereq)
 
         # Then for each arm, unlist to remove task level
         result <- lapply(prereq_jobids_by_arm, unlist, recursive = FALSE)
       }
 
       # Add (throttle)th previous arm, so as to throttle
-      map2(result, throttle_job_ids(), append_unless_na)
+      purrr::map2(result, throttle_job_ids(), append_unless_na)
     },
 
     add_merge = function(new_merge){
