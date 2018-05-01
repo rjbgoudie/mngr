@@ -46,29 +46,6 @@ mngr_option_dir_run <- function(){
   getOption("mngr_dir_run") %||% default
 }
 
-#' Save RDS data to a tempfile initially
-#'
-#' This option determines whether files saved using saveRDS are first saved to
-#' to a tempfile, generated using \code{\link{tempfile}}, and then copied
-#' to the final destination. This makes saving much faster on some very slow
-#' filesystems.
-#'
-#' @return The current value of the option
-mngr_option_use_tempfile <- function(){
-  getOption("mngr_use_tempfile") %||% FALSE
-}
-
-#' Path to the directory containing Slurm submit script
-#'
-#' This option controls which directory will be searched for Slurm submit
-#' scripts. The default is \code{~/.mngr/slurm/}
-#'
-#' @return The current value of the option
-mngr_option_slurm_submit_path <- function(){
-  default <- "~/.mngr/slurm/"
-  getOption("mngr_slurm_submit_path") %||% default
-}
-
 #' Converting run paths to output paths
 #'
 #' Set the "output" location: this is where all of the plots, rds files, and
@@ -153,4 +130,27 @@ mngr_option_dir_state <- function(){
     fs::path(mngr_option_dir_output()(dir), "state")
   }
   getOption("mngr_dir_state") %||% default
+}
+
+#' Save RDS data to a tempfile initially
+#'
+#' This option determines whether files saved using saveRDS are first saved to
+#' to a tempfile, generated using \code{\link{tempfile}}, and then copied
+#' to the final destination. This makes saving much faster on some very slow
+#' filesystems.
+#'
+#' @return The current value of the option
+mngr_option_use_tempfile <- function(){
+  getOption("mngr_use_tempfile") %||% FALSE
+}
+
+#' Path to the directory containing Slurm submit script
+#'
+#' This option controls which directory will be searched for Slurm submit
+#' scripts. The default is \code{~/.mngr/slurm/}
+#'
+#' @return The current value of the option
+mngr_option_slurm_submit_path <- function(){
+  default <- "~/.mngr/slurm/"
+  getOption("mngr_slurm_submit_path") %||% default
 }
