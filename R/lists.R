@@ -84,42 +84,46 @@ pretty_print_squeue <- function(x){
 
 
 pretty_print_rout <- function(x){
-  x <- x %>%
-    mutate(finished = TRUE) %>%
-    prep_finished_success
+  if (nrow(x) == 0){
+    cat("No R out files to print yet")
+  } else {
+    x <- x %>%
+      mutate(finished = TRUE) %>%
+      prep_finished_success
 
-  finished_success <- finished_success(x)
-  more_complex <- x %>%
-    filter(!all_finished_success) %>%
-    mutate(mean_time = internal_run_seconds,
-           jid = paste(jid))
+    finished_success <- finished_success(x)
+    more_complex <- x %>%
+      filter(!all_finished_success) %>%
+      mutate(mean_time = internal_run_seconds,
+             jid = paste(jid))
 
-  out <- bind_rows(finished_success, more_complex) %>%
-    arrange(jobname) %>%
-    mutate(ok = pretty_success_status(TRUE, success),
-           t = pretty_print_time(mean_time)) %>%
-    rename(e = errors,
-           w = warnings) %>%
-    select(jobname,
-           jid,
-           starts_with("arm___"),
-           t,
-           ok,
-           e,
-           w,
-           final)
+    out <- bind_rows(finished_success, more_complex) %>%
+      arrange(jobname) %>%
+      mutate(ok = pretty_success_status(TRUE, success),
+             t = pretty_print_time(mean_time)) %>%
+      rename(e = errors,
+             w = warnings) %>%
+      select(jobname,
+             jid,
+             starts_with("arm___"),
+             t,
+             ok,
+             e,
+             w,
+             final)
 
-  arm_cols <- substring(colnames(out), 1, 6) == "arm___"
-  colnames(out)[arm_cols] <- paste0("\033[36m",
-                                    substring(colnames(out), 7)[arm_cols],
-                                    "\033[39m")
+    arm_cols <- substring(colnames(out), 1, 6) == "arm___"
+    colnames(out)[arm_cols] <- paste0("\033[36m",
+                                      substring(colnames(out), 7)[arm_cols],
+                                      "\033[39m")
 
-  out <- out %>%
-    mutate_all(funs(as.character)) %>%
-    mutate_all(funs(coalesce(., ""))) %>%
-    as.data.frame
+    out <- out %>%
+      mutate_all(funs(as.character)) %>%
+      mutate_all(funs(coalesce(., ""))) %>%
+      as.data.frame
 
-  cat_df(out)
+    cat_df(out)
+  }
 }
 
 pretty_print_merged <- function(full_status, slurm_status){
