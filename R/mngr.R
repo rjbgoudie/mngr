@@ -107,7 +107,7 @@ run <- function(name = "default", debug = FALSE){
     invisible(TRUE)
   })
 
-  scheduler <- task_env$config$scheduler %||% "slurm"
+  scheduler <- mngr_option_scheduler()
   jobids <- slurm_env$jobids
   jobids_length <- length(jobids)
   if (jobids_length > 0){

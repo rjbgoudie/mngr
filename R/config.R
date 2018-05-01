@@ -16,6 +16,24 @@ mngr_config <- function(...){
   assign("config", new, envir = task_env)
 }
 
+#' Scheduler used for running R jobs
+#'
+#' This option should be set to either \code{"slurm"} or \code{"local"}.
+#'
+#' If \code{"slurm"}, then the Slurm Workload Manager will be used to submit
+#' the jobs to a cluster
+#'
+#' If \code{"local"}, then the jobs will be run on the local machine, with
+#' execution controlled by a simple R-based scheduler.
+#'
+#' The default is \code{"local"}.
+#'
+#' @return The current value of the option
+mngr_option_scheduler <- function(){
+  default <- "local"
+  getOption("mngr_scheduler") %||% default
+}
+
 #' Converting paths to runpaths
 #'
 #' This option determines the function used to set the path where an analysis

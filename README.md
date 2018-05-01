@@ -58,14 +58,18 @@ These settings should be made in ```~/.mngr/config.R```. So that you can use
 ```mngr``` interactively, you will also want to source this config file in
 your ```.Rprofile```
 
-1. Filepaths: ```mngr_dir_output``` and ```mngr_dir_run``` - see 'File locations
+1. Scheduler: ```mngr_scheduler``` should take the value ```"slurm"``` to use
+   the Slurm Workload Manger for running the jobs on a cluster, or
+   ```"local"``` to run the jobs on locally, using a simple R-based scheduler.
+
+2. Filepaths: ```mngr_dir_output``` and ```mngr_dir_run``` - see 'File locations
    and paths' section below for details.
 
    Further customisation can be achieved with the ```mngr_dir_slurm_logs```,
    ```mngr_dir_r_logs_latest```, ```mngr_dir_r_logs``` and ```mngr_dir_state```
    optins.
 
-2. Use tempfile for saving RDS files. On some filesystems (e.g NFS network
+3. Use tempfile for saving RDS files. On some filesystems (e.g NFS network
    shares), it can be slow to write out RDS files using ```saveRDS```. Instead,
    it is much quicker to write the file first to a local filesystem, and then
    move the final file to the network share.
@@ -74,7 +78,7 @@ your ```.Rprofile```
    ```saveRDS``` is used, the R object is first written to ```tempfile()```,
    and then moved to the ultimate final location.
 
-3. Slurm submit directory: ```mngr_slurm_submit_path```. This should be set to
+4. Slurm submit directory: ```mngr_slurm_submit_path```. This should be set to
    the path containing Slurm submit scripts. The directory can contain several
    submit scripts, for example for different Slurm queues.
 

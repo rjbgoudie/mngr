@@ -37,7 +37,7 @@ rfile_create <- function(name, action){
 rfile <- function(name){
   expr <- substitute(name)
 
-  scheduler <- task_env$config$scheduler %||% "slurm"
+  scheduler <- mngr_option_scheduler()
   if (scheduler == "slurm"){
     action <- slurm_r_job
   } else if (scheduler == "local"){
