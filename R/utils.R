@@ -41,7 +41,9 @@ system_in_dir <- function(command, dir, ...){
   if (os == "unix"){
     system(command = paste0("(cd ", dir, "; ", command, ")"), ...)
   } else if (os == "windows"){
-    system(command = paste("cmd.exe /c cd", dir, "&&", command), ...)
+    with_dir(dir, {
+      system(command = command, ...)
+    })
   }
 }
 
