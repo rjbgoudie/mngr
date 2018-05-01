@@ -41,6 +41,44 @@ Whenever a task is run, the git HEAD is copied (by cloning or pulling the
 git repository) from $HOME/path/to/analysis to $HOME/run/path/to/analysis -
 this allows further edits to be made whilst a task is running
 
+Slurm
+-----
+
+Submit scripts should go in ```~/.mngr/slurm/QUEUE``` where QUEUE is the name
+of the queue.
+
+If no queue is specified in an Mngrfile, ```~/.mngr/slurm/default``` will be used
+
+Options
+-------
+
+Several settings are controlled by the standard ```options``` mechanism in R.
+
+These settings should be made in ```~/.mngr/config.R```. So that you can use
+```mngr``` interactively, you will also want to source this config file in
+your ```.Rprofile```
+
+1. Filepaths: ```mngr_dir_output``` and ```mngr_dir_run``` - see 'File locations
+   and paths' section below for details.
+
+   Further customisation can be achieved with the ```mngr_dir_slurm_logs```,
+   ```mngr_dir_r_logs_latest```, ```mngr_dir_r_logs``` and ```mngr_dir_state```
+   optins.
+
+2. Use tempfile for saving RDS files. On some filesystems (e.g NFS network
+   shares), it can be slow to write out RDS files using ```saveRDS```. Instead,
+   it is much quicker to write the file first to a local filesystem, and then
+   move the final file to the network share.
+
+   Setting ```mngr_use_tempfile``` to ```TRUE``` will turn this option on: when
+   ```saveRDS``` is used, the R object is first written to ```tempfile()```,
+   and then moved to the ultimate final location.
+
+3. Slurm submit directory: ```mngr_slurm_submit_path```. This should be set to
+   the path containing Slurm submit scripts. The directory can contain several
+   submit scripts, for example for different Slurm queues.
+
+   The default value is ```~/.mngr/slurm/```.
 
 File locations and paths
 ------------------------
@@ -73,18 +111,6 @@ There are several file locations relevant to mngr:
    This should be a function that converts a path (within the run directory) to
    the corresponding path in the results location. By default, mngr_dir_output
    is set so that the results will be saved within the run directory
-
-These settings should be made in ```~/.mngr/config.R```. So that you can use
-```mngr``` interactively, you will also want to source this config file in
-your ```.Rprofile```
-
-Slurm
------
-
-Submit scripts should go in ```~/.mngr/slurm/QUEUE``` where QUEUE is the name
-of the queue.
-
-If no queue is specified in an Mngrfile, ```~/.mngr/slurm/default``` will be used
 
 Installation
 ------------

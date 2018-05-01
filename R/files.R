@@ -64,9 +64,18 @@ save <- function(..., file){
   saveRDS(..., file = file)
 }
 
-#' save rds file
-#' @param file file name
-#' @param ... passed to default save
+#' Save an R object to a rds file
+#'
+#' Wraps the default \code{\link{saveRDS}} function to allow for handling
+#' softlinking, and using tempfile saving.
+#'
+#' If the option \code{mngr_use_tempfile} is TRUE, then files are first saved
+#' to a tempfile, generated using \code{\link{tempfile}}, and then copied
+#' to the final destination. This makes saving much faster on some very slow
+#' filesystems.
+#'
+#' @param file A filename file name
+#' @param ... passed to default \code{\link{saveRDS}}
 #' @export
 saveRDS <- function(..., file){
   if (isTRUE(mngr_option_use_tempfile())){
