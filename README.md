@@ -1,31 +1,22 @@
 mngr
 ====
 
-mngr is a system for automating runs of R files efficiently for statistical
+mngr is a system for automating runs of R files for statistical
 analyses.
-In principle, it is compatible with any batch system, but currently only using
-the Slurm system is implemented.
 
-It is somewhat inspired by
-[Make](https://www.gnu.org/software/make/manual/make.html) and
-[Rake](https://github.com/ruby/rake), although it is more specialised and
-opinionated.
-In particular, versions of analyses are handled using `git': different branches
-can be run simultaneously and independently, and the output will be stored
-separately.
+Workflows are defined in a file called `Mngrfile.R` in the directory of the
+analysis.
 
-Workflows are defined in a file called `Mngrfile.R` - this file is written in a
-special form of R.
+All R files in the current directory can be made into a `task' using
+`rfiles()`
 
-After running `rfiles()` all files ending in `.R` in the current directory are
-`tasks' that can be run in the command line by running. For example, if you have
-a file called `filename.R', then this can be run via
+Dependencies between tasks are set up using the ```%d%``` operator (or
+```%depends%```).
 
-``` sh
-mngr filename
-```
+Arms
+----
 
-Often, we want ot run many variants of a particular analysis.
+Often, we want to run many variants of a particular analysis.
 Each variant of an analysis is called an `arm' in mngr.
 If all combinations are required, then add the following to the Mngrfile.R
 
@@ -35,11 +26,7 @@ arms_factorial(initial_value = c(1, 4, 7),
 ```
 
 So that each arm does not overwrite each other, helper functions are available
-to place data files and plots etc in appropriate places: `rds_file` etc
-
-Whenever a task is run, the git HEAD is copied (by cloning or pulling the
-git repository) from $HOME/path/to/analysis to $HOME/run/path/to/analysis -
-this allows further edits to be made whilst a task is running
+to place data files and plots etc in appropriate places: ```rds_file``` etc
 
 Slurm
 -----
@@ -49,6 +36,9 @@ of the queue (unless you change the value of ```mngr_slurm_submit_path``` -- see
 below).
 
 If no queue is specified in an Mngrfile, ```~/.mngr/slurm/default``` will be used
+
+Cores, memory, hours, and throttling constraints can be set for individual
+tasks using ```%cores%```, ```%memory%```, ```%hours%``` and ```%throttle%```.
 
 Options
 -------
@@ -125,3 +115,14 @@ Installation
 # install.packages("devtools")
 devtools::install_github("rjbgoudie/mngr")
 ```
+
+Other systems
+-------------
+
+```mngr``` is somewhat inspired by
+[Make](https://www.gnu.org/software/make/manual/make.html) and
+[Rake](https://github.com/ruby/rake), but ```mngr``` is customised to
+statistical workflows.
+In particular, versions of analyses are handled using `git': different branches
+can be run simultaneously and independently, and the output will be stored
+separately.
