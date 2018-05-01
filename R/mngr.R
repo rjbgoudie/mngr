@@ -87,6 +87,7 @@ run <- function(name = "default", debug = FALSE){
     message("Loading state files")
     state_load_all()
 
+    message("Loading last edited dates")
     # Preload edited status of source files
     task_last_edited_load_all()
 
