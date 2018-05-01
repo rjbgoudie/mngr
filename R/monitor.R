@@ -129,6 +129,28 @@ latest_logs <- function(){
   })
 }
 
+#' Print status of specified jobs
+#'
+#' @param jobs A character vector of job IDs
+#' @param dir Path to the directory where the R logs are stored. A character
+#'   vector of length 1
+monitor_logs <- function(jobs, dir){
+  logs_paths <- Sys.glob(paste0(dir, "/", jobs, "*.Rout"))
+
+  rout_df <- NULL
+  if (length(logs_paths) > 0){
+    rout_df <- parse_rout_files(logs_paths)
+  }
+
+  have_rout <- !is.null(rout_df) && nrow(rout_df) > 0
+
+  if (have_rout){
+    pretty_print_rout(rout_df)
+  } else {
+    message("No rout")
+  }
+}
+
 #' Extract Job ID from squeue output
 #'
 #' @param pattern A regular expression of Job Names to extract the Job ID of

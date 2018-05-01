@@ -115,14 +115,20 @@ run <- function(name = "default", debug = FALSE){
     message(jobids_length, " jobs submitted")
 
     if (scheduler == "local"){
+      logs_dir <-  mngr_option_dir_r_logs()(dir_run_branch())
+
       on.exit(lscheduler_kill_all)
       tryCatch({
         while (!lscheduler_finished()){
           lscheduler_run_next()
           cat(lscheduler_number_running(), " running; started ", lscheduler_started(), " tasks out of ", lscheduler_total(), "\n")
-          latest_logs()
+
+          monitor_logs(jobs = slurm_env$jobids,
+                       dir = logs_dir)
+
           Sys.sleep(2)
         }
+        message("All jobs finished")
         latest_logs()
       },
       interrupt = function(interrupt){
