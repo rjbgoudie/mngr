@@ -1,15 +1,16 @@
 task_last_edited_load_all <- function(){
-  command <- paste("git ls-files -z",
-                   "|",
-                   "xargs -0 -n1 -I{} --",
-                   "git --no-pager log -1 --format=\"%ci\t{}\" {}")
-  last_edited <- system(command, intern = TRUE)
-  last_edited <- paste(last_edited, collapse = "\n")
-  last_edited <- read.table(text = last_edited,
-                            sep = "\t",
-                            col.names = c("last_edited", "filename"),
-                            stringsAsFactors = FALSE) %>%
-    as_tibble
+  files_command <- "git ls-files"
+  filenames <- system(files_command, intern = TRUE)
+  last_edited <- tibble(filename = filenames)
+
+  git_last_edited <- function(filename){
+    command <- paste("git --no-pager log -1 --format=\"%ci\"", filename)
+    system(command, intern = TRUE)
+  }
+
+  last_edited <- last_edited %>%
+    rowwise %>%
+    mutate(last_edited = git_last_edited(filename))
   last_edited$last_edited <- as.POSIXct(strptime(last_edited$last_edited,
                                                  format = "%Y-%m-%d %H:%M:%S %z"))
   state_env$last_edited <- last_edited
