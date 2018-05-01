@@ -7,8 +7,8 @@ analyses.
 Workflows are defined in a file called `Mngrfile.R` in the directory of the
 analysis.
 
-All R files in the current directory can be made into a `task' using
-`rfiles()`
+All R files in the current directory can be made into a 'task' using
+```rfiles()```
 
 Dependencies between tasks are set up using the ```%d%``` operator (or
 ```%depends%```).
