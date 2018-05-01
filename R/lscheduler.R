@@ -18,19 +18,18 @@ lscheduler_job <- function(task){
     incant <- paste("cat",
                     path,
                     "| R --no-save --no-restore",
-                    "\"--args -1",
+                    "--args -1",
                     task$basename,
                     task$arm_index,
-                    "\"",
                     "2>&1 | tee",
                     r_log_specific_path,
                     r_log_latest_path)
   } else {
     incant <- paste("R CMD BATCH --no-save --no-restore --no-timing",
-                    "\"--args -1",
+                    "--args -1",
                     task$basename,
                     task$arm_index,
-                    "\"", path,
+                    "--", path,
                     r_log_latest_path)
     # need to mirror logs to r_log_specific_path too
   }
