@@ -45,7 +45,8 @@ Slurm
 -----
 
 Submit scripts should go in ```~/.mngr/slurm/QUEUE``` where QUEUE is the name
-of the queue.
+of the queue (unless you change the value of ```mngr_slurm_submit_path``` -- see
+below).
 
 If no queue is specified in an Mngrfile, ```~/.mngr/slurm/default``` will be used
 
