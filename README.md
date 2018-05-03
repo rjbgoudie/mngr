@@ -25,6 +25,10 @@ arms_factorial(initial_value = c(1, 4, 7),
                seed = c(3, 4))
 ```
 
+This will mean that, for example, in the first arm,
+```initial_value = 1``` and ```seed = 3```.
+The variables will be set when R starts up.
+
 So that each arm does not overwrite each other, helper functions are available
 to place data files and plots etc in appropriate places:
 
