@@ -26,7 +26,18 @@ arms_factorial(initial_value = c(1, 4, 7),
 ```
 
 So that each arm does not overwrite each other, helper functions are available
-to place data files and plots etc in appropriate places: ```rds_file``` etc
+to place data files and plots etc in appropriate places:
+
+1. ```rds_file("myobject")``` will return the path to 
+   ```$OUTPUT/$GITBRANCH/$ARM/rds/myobject.rds```
+2. ```pdf_file("myplot")``` will return the path to 
+   ```$OUTPUT/$GITBRANCH/$ARM/plots/myplot.pdf```
+3. ```tiff_file("myplot")``` will return the path to 
+   ```$OUTPUT/$GITBRANCH/$ARM/rds/myplot.tiff```
+4. ```png_file("myplot")``` will return the path to 
+   ```$OUTPUT/$GITBRANCH/$ARM/rds/myplot.png```
+
+All of these are wrappers to ```file_path```.
 
 Slurm
 -----
