@@ -36,7 +36,8 @@ startup <- function(){
   }
   mngrfile <- find_mngrfile(getwd())
   source(mngrfile)
-  arms <- arms_all(.task)
+  task_obj <- task_get(task, exists = TRUE)
+  arms <- task_obj$arms_to_invoke(.task)
   if (.arm > nrow(arms)){
     stop("Can't find arm ", .arm, "; there are only ", nrow(arms), " arms")
   }

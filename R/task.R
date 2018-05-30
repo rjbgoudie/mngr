@@ -230,7 +230,7 @@ Task <- setRefClass(
       job_ids()[indicies]
     },
 
-    which_jobs_involve = function(match){
+    which_arms_involve = function(match, id){
       "For each row of a given data_frame arm values (match), identify which
        arms in THIS task involve the arm values in that match row. "
 
@@ -255,16 +255,23 @@ Task <- setRefClass(
       # For each row of the match data_frame, which rows in this are involved
       indicies_list <- apply(involved, 1, which)
 
+      id_fun <- if (id == "job"){
+        .self$job_ids
+      } else if (id == "arm") {
+        .self$arm_ids
+      }
+
       # Convert these indicies to job_ids
       lapply(indicies_list, function(index){
-        as.list(job_ids()[index])
+        as.list(id_fun()[index])
       })
     },
 
     build_jobs = function(){
       arms_local <- arms_to_invoke()
       jobs_df <- bind_cols(arms_local,
-                           tibble(prereq_job_ids = prereq_job_ids()))
+                           tibble(prereq_job_ids = prereq_ids(id = "job",
+                                                              throttle = TRUE)))
 
       jobs_df <- jobs_df %>%
         mutate(task_name = name,
@@ -323,7 +330,7 @@ Task <- setRefClass(
       lapply(tasks, function(task) task$invoke(debug = debug))
     },
 
-    prereq_job_ids = function(){
+    prereq_ids = function(id, throttle){
       "Return a list, each component corresponds to an arm of this task"
 
       arms_local <- arms_to_invoke()
@@ -339,24 +346,28 @@ Task <- setRefClass(
         # A list each component of which corresponds to a task.
         # Each component contains a component corresponding to each arm of this
         # task
-        prereq_jobids_by_prereq <- lapply(prerequisities, function(task){
+        prereq_ids_by_prereq <- lapply(prerequisities, function(task){
           if (task$is_dummy()){
             # transpose so that we get the form
             # arms, each component is the list of prereqs
-            purrr::transpose(task$prereq_job_ids())
+            purrr::transpose(task$prereq_ids(id = id, throttle = throttle))
           } else {
-            task$which_jobs_involve(arms_local)
+            task$which_arms_involve(arms_local, id = id)
           }
         })
         # Flip so that prerequisities tasks are nested within arms
-        prereq_jobids_by_arm <- purrr::transpose(prereq_jobids_by_prereq)
+        prereq_ids_by_arm <- purrr::transpose(prereq_ids_by_prereq)
 
         # Then for each arm, unlist to remove task level
-        result <- lapply(prereq_jobids_by_arm, unlist, recursive = FALSE)
+        result <- lapply(prereq_ids_by_arm, unlist, recursive = FALSE)
       }
 
-      # Add (throttle)th previous arm, so as to throttle
-      purrr::map2(result, throttle_job_ids(), append_unless_na)
+      if (throttle){
+        # Add (throttle)th previous arm, so as to throttle
+        purrr::map2(result, throttle_job_ids(), append_unless_na)
+      } else {
+        result
+      }
     },
 
     add_merge = function(new_merge){

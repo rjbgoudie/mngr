@@ -12,15 +12,6 @@ arms_factorial <- function(...){
   assign("arms_list", arms_list, envir = task_env)
 }
 
-#' All arms of a task
-#'
-#' @param task A task name
-#' @return A list of all arms for the task
-arms_all <- function(task){
-  task_obj <- task_get(task, exists = TRUE)
-  task_obj$arms_to_invoke()
-}
-
 #' Unique name for arm
 #'
 #' Create a character name for a particular arm
@@ -28,27 +19,20 @@ arms_all <- function(task){
 #' NOTE THIS SEEMS TO DUPLICATE taskarm_name??
 #'
 #' @return A character vector of length 1, the arm_name
-arm_name <- function(task, splitting = FALSE){
+arm_id <- function(task, splitting = FALSE){
   task_obj <- task_get(task, exists = TRUE)
   task_obj$arm_ids(splitting = splitting)[.arm]
 }
 
-#' The arm names prior to merging
+#' Arm IDs for the prerequisite tasks
 #'
-#' @return A list of arm names
-arm_name_merge <- function(){
-  arms <- arms_all(.task)
-
-  arm <- arms[[.arm]]
-  o <- order(names(arm))
-  arm <- arm[o]
-  arml <- lapply(arm, as.character)
-  grid <- do.call("expand_grid", arml)
-  apply(grid, 1, function(arm){
-    arm_values <- sapply(arm, paste, collapse = ",")
-    arm_names <- names(arm)
-    paste(arm_names, arm_values, sep = "--",  collapse = "__")
-  })
+#' @param task A task name
+#' @return
+#' A list of arm ids of the current arm of the supplied task
+prereq_arm_ids <- function(task){
+  task_obj <- task_get(task, exists = TRUE)
+  prereq_ids <- task_obj$prereq_ids(id = "arm", throttle = FALSE)
+  prereq_ids[[.arm]]
 }
 
 #' Merge arms
@@ -85,7 +69,7 @@ arm_name_merge <- function(){
 #' @return A list, each component of which corresponds to a unmerged arm
 #' @export
 read_rds_merge <- function(...){
-  all_arms <- arm_name_merge()
+  all_arms <- prereq_arm_ids(.task)
   all_paths <- sapply(all_arms, function(x){
     rds_file(..., arm = x)
   })

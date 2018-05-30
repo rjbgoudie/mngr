@@ -9,7 +9,7 @@
 #' @return A character vector of length 1, the file path
 #' @export
 file_path <- function(file,
-                      arm = arm_name(.task, splitting = splitting),
+                      arm = arm_id(.task, splitting = splitting),
                       directory = "etc",
                       extension = "",
                       splitting = FALSE){
