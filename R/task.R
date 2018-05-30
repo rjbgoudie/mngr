@@ -294,7 +294,7 @@ Task <- setRefClass(
     },
 
     invoke = function(debug = FALSE){
-      "Invoke this task and its prerequisities, unless it has already been
+      "Invoke this task and its prerequisites, unless it has already been
        invoked"
       if (!already_invoked){
         already_invoked <<- TRUE
@@ -337,21 +337,21 @@ Task <- setRefClass(
       arms_local <- arms_to_invoke()
       arm_seq <- seq_len(nrow(arms_local))
 
-      prerequisities <- prereq_tasks()
-      names(prerequisities) <- rep("prereq_taskarms",
-                                   times = length(prerequisities))
+      prerequisites <- prereq_tasks()
+      names(prerequisites) <- rep("prereq_taskarms",
+                                  times = length(prerequisites))
 
-      if (length(prerequisities) == 0){
+      if (length(prerequisites) == 0){
         list(purrr::map(arm_seq, function(i) list()))
       } else {
-        if (length(prerequisities) == 1 & prerequisities[[1]]$is_dummy()){
+        if (length(prerequisites) == 1 & prerequisites[[1]]$is_dummy()){
           # With just one dummy prerequisite, just jump up a level
-          prerequisities[[1]]$prereq_ids_by_prereq(id = id)
+          prerequisites[[1]]$prereq_ids_by_prereq(id = id)
         } else {
           # A list each component of which corresponds to a task.
           # Each component contains a component corresponding to each arm of
           # this task
-          lapply(prerequisities, function(task){
+          lapply(prerequisites, function(task){
             if (task$is_dummy()){
               warning("Depending on more than one dummy not handled yet")
             } else {
@@ -367,7 +367,7 @@ Task <- setRefClass(
       prereq_ids_by_prereq_local <-
         .self$prereq_ids_by_prereq(id = id)
 
-      # Flip so that prerequisities tasks are nested within arms
+      # Flip so that prerequisites tasks are nested within arms
       prereq_ids_by_arm <- purrr::transpose(prereq_ids_by_prereq_local)
 
       # Then for each arm, unlist to remove task level
