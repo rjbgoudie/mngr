@@ -330,9 +330,10 @@ Task <- setRefClass(
       lapply(tasks, function(task) task$invoke(debug = debug))
     },
 
-    prereq_ids = function(id, throttle){
-      "Return a list, each component corresponds to an arm of this task"
-
+    prereq_ids_by_prereq = function(id){
+      "Return a list, each component of which corresponds to a prereq of this
+       of this task. Each of these components contains a component corresponding
+       to each arm of this task."
       arms_local <- arms_to_invoke()
       arm_seq <- seq_len(nrow(arms_local))
 
@@ -341,26 +342,36 @@ Task <- setRefClass(
                                    times = length(prerequisities))
 
       if (length(prerequisities) == 0){
-        result <- purrr::map(arm_seq, function(i) list())
+        list(purrr::map(arm_seq, function(i) list()))
       } else {
-        # A list each component of which corresponds to a task.
-        # Each component contains a component corresponding to each arm of this
-        # task
-        prereq_ids_by_prereq <- lapply(prerequisities, function(task){
-          if (task$is_dummy()){
-            # transpose so that we get the form
-            # arms, each component is the list of prereqs
-            purrr::transpose(task$prereq_ids(id = id, throttle = throttle))
-          } else {
-            task$which_arms_involve(arms_local, id = id)
-          }
-        })
-        # Flip so that prerequisities tasks are nested within arms
-        prereq_ids_by_arm <- purrr::transpose(prereq_ids_by_prereq)
-
-        # Then for each arm, unlist to remove task level
-        result <- lapply(prereq_ids_by_arm, unlist, recursive = FALSE)
+        if (length(prerequisities) == 1 & prerequisities[[1]]$is_dummy()){
+          # With just one dummy prerequisite, just jump up a level
+          prerequisities[[1]]$prereq_ids_by_prereq(id = id)
+        } else {
+          # A list each component of which corresponds to a task.
+          # Each component contains a component corresponding to each arm of
+          # this task
+          lapply(prerequisities, function(task){
+            if (task$is_dummy()){
+              warning("Depending on more than one dummy not handled yet")
+            } else {
+              task$which_arms_involve(arms_local, id = id)
+            }
+          })
+        }
       }
+    },
+
+    prereq_ids = function(id, throttle){
+      "Return a list, each component corresponds to an arm of this task"
+      prereq_ids_by_prereq_local <-
+        .self$prereq_ids_by_prereq(id = id)
+
+      # Flip so that prerequisities tasks are nested within arms
+      prereq_ids_by_arm <- purrr::transpose(prereq_ids_by_prereq_local)
+
+      # Then for each arm, unlist to remove task level
+      result <- lapply(prereq_ids_by_arm, unlist, recursive = FALSE)
 
       if (throttle){
         # Add (throttle)th previous arm, so as to throttle
