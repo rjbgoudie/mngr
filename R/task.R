@@ -231,17 +231,19 @@ Task <- setRefClass(
     },
 
     which_arms_involve = function(match, id){
-      "For each row of a given data_frame arm values (match), identify which
-       arms in THIS task involve the arm values in that match row. "
+      "A list, each component of which corresponds to a row of a given
+       data_frame of arm values (match). Each component contains the IDs
+       (job_id or arm_id) of the arms in THIS task involve the arm values in
+       that corresponding row of match."
 
       this <- arms_to_invoke()
       common_cols <- intersect(colnames(this), colnames(match))
       this <- this[, common_cols]
       result <- array(dim = c(nrow(match), nrow(this), ncol(this)))
 
-      for (i in 1:nrow(match)){
-        for (r in 1:nrow(this)){
-          for (c in 1:ncol(this)){
+      for (i in 1:nrow(match)){ # rows of match
+        for (r in 1:nrow(this)){ # different arm values of this task
+          for (c in 1:ncol(this)){ # different arm variables of this task
             mic <- unlist(match[i, c])
             trc <- unlist(this[r, c])
             result[i, r, c] <- length(intersect(mic, trc)) > 0
@@ -249,11 +251,17 @@ Task <- setRefClass(
         }
       }
 
-      # all arms (common_cols) must have at least something in common
+      # Calculate the rowSum over dim 3 of result
+      # So involved is a logical matrix, with rows corresponding to rows of
+      # match and columns corresponding to arm values of THIS task.
+      # involved[i, j] == TRUE iff arm j of THIS task involves the
+      # arm values in match[i, ]
       involved <- rowSums(result, dims = 2) == length(common_cols)
 
-      # For each row of the match data_frame, which rows in this are involved
-      indicies_list <- apply(involved, 1, which)
+      # A list, each component of which corresponds to a row of match
+      # Each component is a vector of arm indicies of THIS task that involve
+      # arm values in the row of match
+      indicies_list <- as.data.frame(apply(involved, 1, which))
 
       id_fun <- if (id == "job"){
         .self$job_ids
@@ -261,7 +269,9 @@ Task <- setRefClass(
         .self$arm_ids
       }
 
-      # Convert these indicies to job_ids
+      # A list, each component of which corresponds to a row of match
+      # Each component is a list of the id_fun of the arms of THIS task that
+      # involve the arm values in that row of match
       lapply(indicies_list, function(index){
         as.list(id_fun()[index])
       })
@@ -330,27 +340,24 @@ Task <- setRefClass(
       lapply(tasks, function(task) task$invoke(debug = debug))
     },
 
-    prereq_ids_by_prereq = function(id){
+    prereq_ids_by_prereq = function(id, arms_local){
       "Return a list, each component of which corresponds to a prereq of this
        of this task. Each of these components contains a component corresponding
-       to each arm of this task."
-      arms_local <- arms_to_invoke()
-      arm_seq <- seq_len(nrow(arms_local))
-
+       to each arm of THIS task, containing a list of IDs of arms of that prereq
+       that involve the corresponding arm of THIS task"
       prerequisites <- prereq_tasks()
       names(prerequisites) <- rep("prereq_taskarms",
                                   times = length(prerequisites))
 
       if (length(prerequisites) == 0){
+        arm_seq <- seq_len(nrow(arms_local))
         list(purrr::map(arm_seq, function(i) list()))
       } else {
         if (length(prerequisites) == 1 & prerequisites[[1]]$is_dummy()){
           # With just one dummy prerequisite, just jump up a level
-          prerequisites[[1]]$prereq_ids_by_prereq(id = id)
+          prerequisites[[1]]$prereq_ids_by_prereq(id = id,
+                                                  arms_local = arms_local)
         } else {
-          # A list each component of which corresponds to a task.
-          # Each component contains a component corresponding to each arm of
-          # this task
           lapply(prerequisites, function(task){
             if (task$is_dummy()){
               warning("Depending on more than one dummy not handled yet")
@@ -363,14 +370,22 @@ Task <- setRefClass(
     },
 
     prereq_ids = function(id, throttle){
-      "Return a list, each component corresponds to an arm of this task"
-      prereq_ids_by_prereq_local <-
-        .self$prereq_ids_by_prereq(id = id)
+      "Return a list, each component corresponds to an arm of THIS task.
+       Each of component contains the arm IDs of the prereq that involve the
+       corresponding arm of THIS task"
+      arms_local <- arms_to_invoke()
 
-      # Flip so that prerequisites tasks are nested within arms
+      prereq_ids_by_prereq_local <-
+        .self$prereq_ids_by_prereq(id = id, arms_local = arms_local)
+
+      # purrr::transpose reverses the nesting of the OUTER two lists
+      # so this results in a list, each component of which corresponds to an
+      # arm of this task. Each of these components contains a component
+      # corresponding to each prerequisite of this task.
       prereq_ids_by_arm <- purrr::transpose(prereq_ids_by_prereq_local)
 
-      # Then for each arm, unlist to remove task level
+      # Then for each arm, unlist to remove the level corresponding to each
+      # prerequisite task
       result <- lapply(prereq_ids_by_arm, unlist, recursive = FALSE)
 
       if (throttle){
