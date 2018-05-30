@@ -341,7 +341,9 @@ Task <- setRefClass(
         # task
         prereq_jobids_by_prereq <- lapply(prerequisities, function(task){
           if (task$is_dummy()){
-            task$prereq_job_ids()
+            # transpose so that we get the form
+            # arms, each component is the list of prereqs
+            purrr::transpose(task$prereq_job_ids())
           } else {
             task$which_jobs_involve(arms_local)
           }
