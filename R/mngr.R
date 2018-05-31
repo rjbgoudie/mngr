@@ -1,7 +1,7 @@
 #' Mngr
 #' @docType package
 #' @name mngr
-#' @import dplyr tibble tidyr fs purrr
+#' @import dplyr tibble tidyr fs purrr docopt
 NULL
 
 # This environment contains the main variables
@@ -142,4 +142,17 @@ run <- function(name = "default", debug = FALSE){
   } else {
     message("No jobs submitted")
   }
+}
+
+'Usage:
+mngr [--verbose] <task>
+
+Options:
+--verbose  Print verbose logging' -> mngr_doc
+
+#' @export
+run_cmd <- function(args){
+  opts <- docopt::docopt(mngr_doc, args = args)
+  run(name = opts$task %||% "default",
+      debug = opts$verbose)
 }
