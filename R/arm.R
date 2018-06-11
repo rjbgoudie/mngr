@@ -31,7 +31,7 @@ arm_id <- function(task, splitting = FALSE){
 #' A list of arm ids of the current arm of the supplied task
 prereq_arm_ids <- function(task){
   task_obj <- task_get(task, exists = TRUE)
-  prereq_ids <- task_obj$prereq_ids(id = "arm", throttle = FALSE)
+  prereq_ids <- task_obj$prereq_ids(id = "arm")
   unique(prereq_ids[[.arm]])
 }
 

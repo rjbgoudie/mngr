@@ -261,7 +261,10 @@ Task <- setRefClass(
       # A list, each component of which corresponds to a row of match
       # Each component is a vector of arm indicies of THIS task that involve
       # arm values in the row of match
-      indicies_list <- as.data.frame(apply(involved, 1, which))
+      #
+      # The following is like apply(involved, 1, which) but always returns a
+      # list
+      indicies_list <- tapply(involved, row(involved), which, simplify = FALSE)
 
       id_fun <- if (id == "job"){
         .self$job_ids
@@ -277,11 +280,10 @@ Task <- setRefClass(
       })
     },
 
-    build_jobs = function(){
+    build_jobs = function(debug = FALSE){
       arms_local <- arms_to_invoke()
       jobs_df <- bind_cols(arms_local,
-                           tibble(prereq_job_ids = prereq_ids(id = "job",
-                                                              throttle = TRUE)))
+                           tibble(prereq_job_ids = prereq_ids(id = "job")))
 
       jobs_df <- jobs_df %>%
         mutate(task_name = name,
@@ -290,9 +292,12 @@ Task <- setRefClass(
                arm_index = row_number(),
                job_ids = job_ids(),
                ever_invoked = state_ever_invoked(job_ids),
-               last_invoked = state_last_invoked_all(job_ids))
+               last_invoked = state_last_invoked_all(job_ids),
+               prereq_job_ids_with_throttle = purrr::map2(prereq_job_ids,
+                                                          throttle_job_ids(),
+                                                          append_unless_na))
 
-      jobs_df %>%
+      jobs_df <- jobs_df %>%
         mutate(edited_since_last_invoked = last_edited > last_invoked,
                most_recently_invoke_prereq =
                  do.call(c, purrr::map(prereq_job_ids, ~max(state_last_invoked_all(.)))),
@@ -301,6 +306,12 @@ Task <- setRefClass(
                                   edited_since_last_invoked ~ TRUE,
                                   prereq_invoked_after_last_invoked ~ TRUE,
                                   TRUE ~ FALSE))
+
+      if (debug){
+        cat(write.table(jobs_df[, sapply(jobs_df, class) != "list"]),
+            file = stderr())
+      }
+      jobs_df
     },
 
     invoke = function(debug = FALSE){
@@ -312,20 +323,22 @@ Task <- setRefClass(
         debug_msg(debug, "Invoking prerequisties for ", name)
         invoke_prereqs(debug = debug)
 
-        jobs_needed <- build_jobs() %>%
+        jobs_needed <- build_jobs(debug = debug) %>%
           filter(needed)
 
-        jobs_needed %>%
-          rowwise %>%
-          do(null = state_update_last_invoked_time(.$job_ids),
-             null = job_create(name = .$job_ids,
-                               basename = .$task_name,
-                               arm_index = .$arm_index,
-                               actions = actions,
-                               prereqs = as.character(unlist(.$prereq_job_ids)),
-                               properties = properties))
+        if (!is_dummy()){
+          jobs_needed %>%
+            rowwise %>%
+            do(null = state_update_last_invoked_time(.$job_ids),
+               null = job_create(name = .$job_ids,
+                                 basename = .$task_name,
+                                 arm_index = .$arm_index,
+                                 actions = actions,
+                                 prereqs = as.character(unlist(.$prereq_job_ids_with_throttle)),
+                                 properties = properties))
 
-        message(nrow(jobs_needed), " arms of ", name, " needed")
+          message(nrow(jobs_needed), " arms of ", name, " needed")
+        }
       }
     },
 
@@ -369,7 +382,7 @@ Task <- setRefClass(
       }
     },
 
-    prereq_ids = function(id, throttle){
+    prereq_ids = function(id){
       "Return a list, each component corresponds to an arm of THIS task.
        Each of component contains the arm IDs of the prereq that involve the
        corresponding arm of THIS task"
@@ -386,14 +399,7 @@ Task <- setRefClass(
 
       # Then for each arm, unlist to remove the level corresponding to each
       # prerequisite task
-      result <- lapply(prereq_ids_by_arm, unlist, recursive = FALSE)
-
-      if (throttle){
-        # Add (throttle)th previous arm, so as to throttle
-        purrr::map2(result, throttle_job_ids(), append_unless_na)
-      } else {
-        result
-      }
+      lapply(prereq_ids_by_arm, unlist, recursive = FALSE)
     },
 
     add_merge = function(new_merge){
