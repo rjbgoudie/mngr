@@ -42,7 +42,12 @@ slurm_r_job <- function(task){
            " --output=", slurm_log_path,
            " ", mngr_option_slurm_submit_path(), "/", queue,
            "\n")
-  jobid <- system(incant, intern = TRUE)
+  dry_run <- task_env$config$dry_run %||% FALSE
+  jobid <- if (!dry_run){
+    system(incant, intern = TRUE)
+  } else {
+    "0"
+  }
   time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
   message(time, " Submitted ", task$name, " (", jobid, ")",
           " Run time prediction ", paste(run_time, collapse = ":"))

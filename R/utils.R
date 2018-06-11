@@ -144,3 +144,18 @@ append_unless_na <- function(x, y){
     x
   }
 }
+
+#' Copy directories, retaining last modified dates of files
+#'
+#' file.copy does this in principle, but it does not seem to work on Linux
+#' @param from Directory to copy
+#' @param to Directory to copy to
+copy_dir_retain_dates <- function(from, to){
+  fs::dir_copy(from, to)
+  info <- fs::dir_info(from)
+  info$file <- as.character(fs::path_file(info$path))
+  for (r in seq_len(nrow(info))){
+    Sys.setFileTime(fs::path(to, info$file[r]),
+                    info$modification_time[r])
+  }
+}

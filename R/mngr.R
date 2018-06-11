@@ -48,6 +48,23 @@ find_mngrfile <- function(dir){
   }
 }
 
+
+dry_run <- function(){
+  mngr_config(dry_run = TRUE)
+  dir_run <- mngr_option_dir_run()(getwd())
+  state_dir <- mngr_option_dir_state()(dir_run)
+  state_dry_dir_fun <- function(dir){
+    fs::path_norm(fs::path(state_dir, "../state_dry"))
+  }
+  state_dry_dir <- state_dry_dir_fun(dir_run)
+  if (fs::dir_exists(state_dry_dir)){
+    fs::dir_delete(state_dry_dir)
+  }
+  copy_dir_retain_dates(from = state_dir,
+                        to = state_dry_dir)
+  options(mngr_dir_state = state_dry_dir_fun)
+}
+
 #' Execute a task
 #'
 #' Actually run a task, and any prerequisites that have changed since the last
@@ -60,9 +77,10 @@ find_mngrfile <- function(dir){
 #' 4. Invokes the supplied task
 #'
 #' @param name a task name
+#' @param dry_run Don't actually execute tasks
 #' @param debug A logical, indicating whether to show debug messages
 #' @export
-run <- function(name = "default", debug = FALSE){
+run <- function(name = "default", dry_run = FALSE, debug = FALSE){
   is_inside_git_work_tree <- is_inside_git_work_tree()
   if (!is_inside_git_work_tree){
     stop("The directory is not in a git repository")
@@ -79,6 +97,10 @@ run <- function(name = "default", debug = FALSE){
 
   assign("jobids", c(), envir = slurm_env)
   with_dir(dir_run_branch(check = TRUE), {
+    if (dry_run){
+      dry_run()
+    }
+
     mngrfile <- find_mngrfile(getwd())
     message("Loading Mngrfile")
     source(mngrfile)
@@ -144,15 +166,17 @@ run <- function(name = "default", debug = FALSE){
   }
 }
 
-'Usage:
-mngr [--verbose] <task>
+mngr_doc <- 'Usage:
+mngr [--dry-run] [--debug] [<task>]
 
 Options:
---verbose  Print verbose logging' -> mngr_doc
+--dry-run  Dry run
+--debug  Verbose'
 
 #' @export
 run_cmd <- function(args){
   opts <- docopt::docopt(mngr_doc, args = args)
-  run(name = opts$task %||% "default",
-      debug = opts$verbose)
+  cat(run(name = opts$task %||% "default",
+          dry_run = opts[["dry-run"]],
+          debug = opts$debug))
 }

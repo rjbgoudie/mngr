@@ -14,24 +14,29 @@ lscheduler_job <- function(task){
   r_log_latest_path <- task$r_log_latest_file()
   r_log_path <<- r_log_specific_path
 
-  if (have_tee()){
-    incant <- paste("cat",
-                    path,
-                    "| R --no-save --no-restore",
-                    "--args -1",
-                    task$basename,
-                    task$arm_index,
-                    "2>&1 | tee",
-                    r_log_specific_path,
-                    r_log_latest_path)
+  dry_run <- task_env$config$dry_run %||% FALSE
+  if (dry_run){
+    incant <- ""
   } else {
-    incant <- paste("R CMD BATCH --no-save --no-restore --no-timing",
-                    "--args -1",
-                    task$basename,
-                    task$arm_index,
-                    "--", path,
-                    r_log_latest_path)
-    # need to mirror logs to r_log_specific_path too
+    if (have_tee()){
+      incant <- paste("cat",
+                      path,
+                      "| R --no-save --no-restore",
+                      "--args -1",
+                      task$basename,
+                      task$arm_index,
+                      "2>&1 | tee",
+                      r_log_specific_path,
+                      r_log_latest_path)
+    } else {
+      incant <- paste("R CMD BATCH --no-save --no-restore --no-timing",
+                      "--args -1",
+                      task$basename,
+                      task$arm_index,
+                      "--", path,
+                      r_log_latest_path)
+      # need to mirror logs to r_log_specific_path too
+    }
   }
 
   jobid <- lscheduler_add(incant = incant,
