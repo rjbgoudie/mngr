@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-jobids=$(nice -n 19 Rscript --no-init-file -e "source(\"~/.mngr/config.R\"); library(mngr, quietly = TRUE, warn.conflicts = FALSE); mngr:::run_cmd(args = commandArgs(TRUE))" --args $1)
+ARGS="$@"
+DIR=$(dirname "$0")
+SCRIPT="${DIR}/mngr.R"
+jobids=$(nice -n 19 Rscript --no-init-file "$SCRIPT" "$ARGS")
 result=$?
 if [ $result -eq 0 ]; then
     if [ -n "$jobids" ]; then
