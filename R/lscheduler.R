@@ -16,30 +16,41 @@ lscheduler_job <- function(task){
 
   dry_run <- task_env$config$dry_run %||% FALSE
   if (dry_run){
-    incant <- ""
+    cmd <- ""
+    args <- ""
   } else {
     if (have_tee()){
-      incant <- paste("cat",
-                      path,
-                      "| R --no-save --no-restore",
-                      "--args -1",
-                      task$basename,
-                      task$arm_index,
-                      "2>&1 | tee",
-                      r_log_specific_path,
-                      r_log_latest_path)
+      args <- paste("cat",
+                    path,
+                    "| R --no-save --no-restore",
+                    "--args -1",
+                    task$basename,
+                    task$arm_index,
+                    "2>&1 | tee",
+                    r_log_specific_path,
+                    r_log_latest_path)
     } else {
-      incant <- paste("R CMD BATCH --no-save --no-restore --no-timing",
-                      "--args -1",
-                      task$basename,
-                      task$arm_index,
-                      "--", path,
-                      r_log_latest_path)
+      args <- paste("R CMD BATCH --no-save --no-restore --no-timing",
+                    "--args -1",
+                    task$basename,
+                    task$arm_index,
+                    "--", path,
+                    r_log_latest_path)
       # need to mirror logs to r_log_specific_path too
+    }
+
+    os <- .Platform$OS.type
+    if (os == "unix"){
+      cmd <- "sh"
+      args <- c("-c", args)
+    } else if (os == "windows"){
+      cmd <- "cmd.exe"
+      args <- c("/c", args)
     }
   }
 
-  jobid <- lscheduler_add(incant = incant,
+  jobid <- lscheduler_add(cmd = cmd,
+                          args = args,
                           dependency = task_obj$jobid_prereqs(),
                           jobid = jobid)
   time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
@@ -56,8 +67,9 @@ lscheduler_jobid <- function(){
 #'
 #' @param name job name
 #' @param action a set of expressions
-lscheduler_add <- function(incant, dependency, jobid){
-  lscheduler_env$incant <- c(lscheduler_env$incant, list(incant))
+lscheduler_add <- function(cmd, args, dependency, jobid){
+  lscheduler_env$cmd <- c(lscheduler_env$cmd, list(cmd))
+  lscheduler_env$args <- c(lscheduler_env$args, list(args))
   lscheduler_env$started <- c(lscheduler_env$started, FALSE)
   lscheduler_env$finished <- c(lscheduler_env$finished, FALSE)
   lscheduler_env$dependency <- c(lscheduler_env$dependency, list(dependency))
@@ -108,10 +120,12 @@ lscheduler_run_next <- function(){
   something_startable <- length(start_next) != 0
 
   if (!everything_started && something_startable && number_running < 5){
-    cat("RUNNING", lscheduler_env$incant[[start_next]], "\n")
+    cat("RUNNING", paste(lscheduler_env$args[[start_next]]), "\n")
     lscheduler_env$started[start_next] <- TRUE
-    incant <- lscheduler_env$incant[[start_next]]
-    p <- processx::process$new(commandline = incant,
+    cmd <- lscheduler_env$cmd[[start_next]]
+    args <- lscheduler_env$args[[start_next]]
+    p <- processx::process$new(command = cmd,
+                               args = args,
                                windows_verbatim_args = TRUE)
     lscheduler_env$process[[start_next]] <- p
   }
