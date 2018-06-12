@@ -5,7 +5,6 @@
 #' - output: where the main output should go
 #' - r_logs: where the R logs should be stored
 #' - slurm_logs: where the Slurm logs should be stored
-#' - throttle: the maximum number of tasks that can run at once
 #'
 #' @param ... a list of values to replace default config
 #' @export
@@ -33,6 +32,27 @@ mngr_option_scheduler <- function(){
   default <- "local"
   getOption("mngr_scheduler") %||% default
 }
+
+#' Global throttle setting
+#'
+#' For local scheduler, the maximum number of tasks to run concurrently. The
+#' default is given by \code{\link[parallel]{detectCores}}.
+#'
+#' For slurm scheduler, the maximum number of arms of a single task to run
+#' concurrently. The default is 50.
+#'
+#'
+#' @return The current value of the option
+mngr_option_global_throttle <- function(){
+  scheduler <- mngr_option_scheduler()
+  default <- if (scheduler == "local"){
+    parallel::detectCores()
+  } else {
+    50
+  }
+  getOption("mngr_global_throttle") %||% default
+}
+
 
 #' Converting paths to runpaths
 #'

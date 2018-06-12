@@ -119,7 +119,9 @@ lscheduler_run_next <- function(){
   start_next <- lscheduler_start_next()
   something_startable <- length(start_next) != 0
 
-  if (!everything_started && something_startable && number_running < 5){
+  throttle <- mngr_option_global_throttle()
+
+  if (!everything_started && something_startable && number_running < throttle){
     cat("RUNNING", paste(lscheduler_env$args[[start_next]]), "\n")
     lscheduler_env$started[start_next] <- TRUE
     cmd <- lscheduler_env$cmd[[start_next]]

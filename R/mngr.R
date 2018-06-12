@@ -1,7 +1,7 @@
 #' Mngr
 #' @docType package
 #' @name mngr
-#' @import dplyr tibble tidyr fs purrr docopt
+#' @import dplyr tibble tidyr fs purrr docopt parallel
 NULL
 
 # This environment contains the main variables
@@ -21,9 +21,6 @@ job_env <- new.env()
 
 # This environment is used by the local queue scheduler
 lscheduler_env <- new.env()
-
-# This is the default maximum number of tasks that can run at once
-mngr_default_throttle <- 100
 
 state_env <- new.env()
 

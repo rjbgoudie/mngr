@@ -90,6 +90,11 @@ your ```.Rprofile```
 
    The default value is ```~/.mngr/slurm/```.
 
+5. Global throttle: ```mngr_global_throttle```. The maximum number of tasks to
+   run simulataneously (for local scheduler; default set by
+   ```parallel::detectCores()```) or the maximum number of arms of
+   a task to run (for slurm; default is 50).
+
 File locations and paths
 ------------------------
 

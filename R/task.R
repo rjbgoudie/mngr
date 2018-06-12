@@ -411,11 +411,13 @@ Task <- setRefClass(
     },
 
     get_throttle = function(){
-      if (length(properties$throttle) > 0){
+      local <- if (length(properties$throttle) > 0){
         properties$throttle
       } else {
-        task_env$config$throttle %||% mngr_default_throttle
+        Inf
       }
+      global <- mngr_option_global_throttle()
+      min(local, global)
     },
 
     set_properties = function(...){
