@@ -20,8 +20,8 @@ parse_name <- function(x, type = "rout"){
 
     if (type == "rout"){
       x <- x %>%
-        rename(jid = piece1, jobname = piece2) %>%
-        mutate_at("jid", as.numeric)
+        rename(jid = piece1, jobname = piece2)
+
       arm_pieces <- piece_names[-(1:2)]
     } else if (type == "rlatest"){
       x <- x %>%
