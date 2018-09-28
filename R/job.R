@@ -50,11 +50,11 @@ job_create <- function(jobs_needed, actions, properties){
                          properties = properties)
     job$set_name(names = jobs_needed[rows, "job_ids"])
     job$set_prereqs(jobs_needed[rows, "prereq_job_ids_with_throttle"])
+    job_env$joblist <- c(job_env$joblist, list(job))
+    names(job_env$joblist)[length(job_env$joblist)] <- job$name
 
     for (row in rows){
       state_update_last_invoked_time(jobs_needed[row, "job_ids"])
-      job_env$joblist <- c(job_env$joblist, list(job))
-      names(job_env$joblist)[length(job_env$joblist)] <- jobs_needed[rows, "job_ids"]
     }
   }
 }
