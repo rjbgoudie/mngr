@@ -151,14 +151,19 @@ SlurmJob <- setRefClass(
 
     last_run_time = function(){
       paths <- r_log_latest_file()
-      run_times <- sapply(paths, function(path){
+      run_times <- lapply(paths, function(path){
         if (file.exists(path)){
           run_time(path)
         } else {
           NULL
         }
       })
-      max(run_times[!is.null(run_times)])
+      out <- run_times[!sapply(run_times, is.null)]
+      if (length(out) > 0){
+        max(unlist(out))
+      } else {
+        NULL
+      }
     },
 
     predict_run_time = function(){
