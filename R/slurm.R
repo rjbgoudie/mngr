@@ -74,6 +74,19 @@ SlurmJob <- setRefClass(
     properties = "list"
   ),
   methods = list(
+    set_name = function(names){
+      "Input is a character vector of names of the task(s) that this job
+       corresponds to"
+      # just use the first name for now for simplicity
+      name <<- names[1]
+    },
+
+    set_prereqs = function(prereqs){
+      "Input is a list of lists, each component is a list of the prereqs of
+       that Task. We just use the union of prereqs"
+      prereqs <<- unique(as.character(unlist(prereqs)))
+    },
+
     slurm_file = function(){
       slurm_log_dir <- mngr_option_dir_slurm_logs()(fs::path_tidy(getwd()))
 

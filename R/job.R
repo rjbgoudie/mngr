@@ -41,15 +41,21 @@ job_create <- function(jobs_needed, actions, properties){
 
   for (group in seq_len(ngroups)){
     rows <- which(jobs_needed$group == group)
-    state_update_last_invoked_time(jobs_needed[rows, "job_ids"])
-    job <- scheduler_fun(name = jobs_needed[rows, "job_ids"],
-                         basename = jobs_needed[rows, "task_name"],
+
+    # all task_name should be the same, so just use the first
+    basename <- jobs_needed[rows[1], "task_name"]
+    job <- scheduler_fun(basename = basename,
                          arm_index = jobs_needed[rows, "arm_index"],
                          actions = actions,
-                         prereqs = as.character(unlist(jobs_needed[rows, "prereq_job_ids_with_throttle"])),
                          properties = properties)
-    job_env$joblist <- c(job_env$joblist, list(job))
-    names(job_env$joblist)[length(job_env$joblist)] <- jobs_needed[rows, "job_ids"]
+    job$set_name(names = jobs_needed[rows, "job_ids"])
+    job$set_prereqs(jobs_needed[rows, "prereq_job_ids_with_throttle"])
+
+    for (row in rows){
+      state_update_last_invoked_time(jobs_needed[row, "job_ids"])
+      job_env$joblist <- c(job_env$joblist, list(job))
+      names(job_env$joblist)[length(job_env$joblist)] <- jobs_needed[rows, "job_ids"]
+    }
   }
 }
 
