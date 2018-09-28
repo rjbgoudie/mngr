@@ -48,6 +48,7 @@ slurm_r_job <- function(job){
   jobid <- if (!dry_run){
     system(incant, intern = TRUE)
   } else {
+    cat(incant)
     "0"
   }
   time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
