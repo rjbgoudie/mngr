@@ -1,38 +1,34 @@
-slurm_r_job <- function(task){
-  id <- job_find_id(task$name, exists = TRUE)
-  task_obj <- job_env$joblist[[id]]
-  path <- normalizePath(paste0(task$basename, ".R"), winslash = "/")
+slurm_r_job <- function(job){
+  path <- normalizePath(paste0(job$basename, ".R"), winslash = "/")
+  slurm_log_path <- job$slurm_file()
 
-  slurm_log_path <- task$slurm_file()
-
-  queue <- task_env$config$queue %||% "default"
+  r_log_specific_path <- job$r_log_specific_file()
+  r_log_latest_path <- job$r_log_latest_file()
+  r_log_path <<- r_log_specific_path
 
   # if any shared arms, then depend on all prereqs, not just the matching
   # index
-  dependency <- task_obj$jobid_prereqs()
-
-  memory <- task_obj$get_memory()
-  cores <- task_obj$get_cores()
-
+  dependency <- job$jobid_prereqs()
   dependency <- if (!is.null(dependency) && length(dependency) > 0){
     paste0("--dependency=afterok:", paste(dependency, collapse = ","), " ")
   } else {
     ""
   }
 
-  run_time <- task_obj$predict_run_time()
+  memory <- job$get_memory()
+  cores <- job$get_cores()
+  run_time <- job$predict_run_time()
 
-  r_log_specific_path <- task$r_log_specific_file()
-  r_log_latest_path <- task$r_log_latest_file()
-  r_log_path <<- r_log_specific_path
+  queue <- task_env$config$queue %||% "default"
+  dry_run <- task_env$config$dry_run %||% FALSE
 
   incant <-
     paste0("MNGR_RFILE=", path,
            " MNGR_RLOGFILE=", r_log_specific_path,
            " MNGR_RLOGLATESTFILE=", r_log_latest_path,
-           " MNGR_TASKNAME=", task$basename,
-           " MNGR_ARM=", task$arm_index,
-           " sbatch -J ", task$jobname(),
+           " MNGR_TASKNAME=", job$basename,
+           " MNGR_ARM=", job$arm_index,
+           " sbatch -J ", job$jobname(),
            " --parsable ",
            dependency,
            " --mem=", memory,
@@ -42,18 +38,18 @@ slurm_r_job <- function(task){
            " --output=", slurm_log_path,
            " ", mngr_option_slurm_submit_path(), "/", queue,
            "\n")
-  dry_run <- task_env$config$dry_run %||% FALSE
+
   jobid <- if (!dry_run){
     system(incant, intern = TRUE)
   } else {
     "0"
   }
   time <- strftime(Sys.time(),  format = "%a %d %b %H:%M:%S")
-  message(time, " Submitted ", task$name, " (", jobid, ")",
+  message(time, " Submitted ", job$name, " (", jobid, ")",
           " Run time prediction ", paste(run_time, collapse = ":"))
   ## cat(incant)
 
-  task$set_jobid(jobid)
+  job$set_jobid(jobid)
   slurm_add_jobids(jobid)
 }
 

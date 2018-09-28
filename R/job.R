@@ -37,7 +37,7 @@ job_create <- function(jobs_needed, actions, properties){
 
   group_size <- 1
   ngroups <- ceiling(nrow(jobs_needed)/group_size)
-  jobs_needed$group <- rep(seq_len(ngroups), each = 1, len = nrow(jobs_needed))
+  jobs_needed$group <- rep(seq_len(ngroups), each = group_size, len = nrow(jobs_needed))
 
   for (group in seq_len(ngroups)){
     rows <- which(jobs_needed$group == group)
