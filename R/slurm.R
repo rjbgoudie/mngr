@@ -6,6 +6,8 @@ slurm_r_job <- function(job){
   r_log_latest_path <- job$r_log_latest_file()
   r_log_path <<- r_log_specific_path
 
+  # no dependency across arms is allowed, so just take union of prereqs
+  #
   # if any shared arms, then depend on all prereqs, not just the matching
   # index
   dependency <- job$jobid_prereqs()
@@ -24,10 +26,10 @@ slurm_r_job <- function(job){
 
   incant <-
     paste0("MNGR_RFILE=", path,
-           " MNGR_RLOGFILE=", r_log_specific_path,
-           " MNGR_RLOGLATESTFILE=", r_log_latest_path,
+           " MNGR_RLOGFILE=", paste0(r_log_specific_path, sep = ","),
+           " MNGR_RLOGLATESTFILE=", paste0(r_log_latest_path, sep = ","),
            " MNGR_TASKNAME=", job$basename,
-           " MNGR_ARM=", job$arm_index,
+           " MNGR_ARM=", paste0(job$arm_index, sep = ","),
            " sbatch -J ", job$jobname(),
            " --parsable ",
            dependency,
@@ -65,6 +67,7 @@ SlurmJob <- setRefClass(
   "SlurmJob",
   fields = list(
     name = "character",
+    names = "character",
     basename = "character",
     arm_index = "integer",
     actions = "list",
@@ -79,6 +82,7 @@ SlurmJob <- setRefClass(
        corresponds to"
       # just use the first name for now for simplicity
       name <<- names[1]
+      names <<- names
     },
 
     set_prereqs = function(prereqs){
@@ -142,12 +146,15 @@ SlurmJob <- setRefClass(
     },
 
     last_run_time = function(){
-      path <- r_log_latest_file()
-      if (file.exists(path)){
-        run_time(path)
-      } else {
-        NULL
-      }
+      paths <- r_log_latest_file()
+      run_times <- sapply(paths, function(path){
+        if (file.exists(path)){
+          run_time(path)
+        } else {
+          NULL
+        }
+      })
+      max(run_times[!is.null(run_times)])
     },
 
     predict_run_time = function(){
@@ -173,19 +180,27 @@ SlurmJob <- setRefClass(
     },
 
     r_log_latest_file = function(){
-      r_log_latest_dir <- mngr_option_dir_r_logs_latest()(fs::path_tidy(getwd()))
-      fs::dir_create(r_log_latest_dir)
+      out <- character(length = length(arm_index))
+      for (index in arm_index){
+        r_log_latest_dir <- mngr_option_dir_r_logs_latest()(fs::path_tidy(getwd()))
+        fs::dir_create(r_log_latest_dir)
 
-      r_log_latest_file <- paste0(name, ".Rout")
-      file.path(r_log_latest_dir, r_log_latest_file)
+        r_log_latest_file <- paste0(names[index], ".Rout")
+        out[index] <- file.path(r_log_latest_dir, r_log_latest_file)
+      }
+      out
     },
 
     r_log_specific_file = function(){
-      r_log_dir <- mngr_option_dir_r_logs()(fs::path_tidy(getwd()))
-      fs::dir_create(r_log_dir)
-      r_log_latest_file <- paste0(name, ".Rout")
-      r_log_specific_file <- paste0("\\${SLURM_JOB_ID}__", r_log_latest_file)
-      file.path(r_log_dir, r_log_specific_file)
+      out <- character(length = length(arm_index))
+      for (index in arm_index){
+        r_log_dir <- mngr_option_dir_r_logs()(fs::path_tidy(getwd()))
+        fs::dir_create(r_log_dir)
+        r_log_latest_file <- paste0(names[index], ".Rout")
+        r_log_specific_file <- paste0("\\${SLURM_JOB_ID}__", r_log_latest_file)
+        out[index] <- file.path(r_log_dir, r_log_specific_file)
+      }
+      out
     },
 
     jobname = function(){
