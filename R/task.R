@@ -326,16 +326,8 @@ Task <- setRefClass(
         jobs_needed <- build_jobs(debug = debug) %>%
           filter(needed)
 
-        if (!is_dummy()){
-          jobs_needed %>%
-            rowwise %>%
-            do(null = state_update_last_invoked_time(.$job_ids),
-               null = job_create(name = .$job_ids,
-                                 basename = .$task_name,
-                                 arm_index = .$arm_index,
-                                 actions = actions,
-                                 prereqs = as.character(unlist(.$prereq_job_ids_with_throttle)),
-                                 properties = properties))
+        if (!is_dummy() & nrow(jobs_needed) > 0){
+          job_create(jobs_needed, actions, properties)
 
           message(nrow(jobs_needed), " arms of ", name, " needed")
         }
