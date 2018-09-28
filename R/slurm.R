@@ -24,17 +24,21 @@ slurm_r_job <- function(job){
   queue <- task_env$config$queue %||% "default"
   dry_run <- task_env$config$dry_run %||% FALSE
 
+  arr_sep_fun <- function(x){
+    arr_sep <- ";"
+    paste0(x, collapse = arr_sep)
+  }
   incant <-
     paste0("MNGR_RFILE=", path,
-           " MNGR_RLOGFILE=", paste0(r_log_specific_path, sep = ","),
-           " MNGR_RLOGLATESTFILE=", paste0(r_log_latest_path, sep = ","),
+           " MNGR_RLOGFILE=\"", arr_sep_fun(r_log_specific_path), "\"",
+           " MNGR_RLOGLATESTFILE=\"", arr_sep_fun(r_log_latest_path), "\"",
            " MNGR_TASKNAME=", job$basename,
-           " MNGR_ARM=", paste0(job$arm_index, sep = ","),
+           " MNGR_ARM=\"", arr_sep_fun(job$arm_index), "\"",
            " sbatch -J ", job$jobname(),
            " --parsable ",
            dependency,
-           " --mem=", memory,
-           " --ntasks=", cores,
+           " --mem=", memory * length(job$arm_index),
+           " --ntasks=", cores * length(job$arm_index),
            " --nodes=1",
            " --time=", run_time,
            " --output=", slurm_log_path,
