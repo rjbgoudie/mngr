@@ -31,11 +31,12 @@ job_create <- function(jobs_needed, actions, properties){
 
   if (scheduler == "slurm"){
     scheduler_fun <- SlurmJob
+    group_size <- 32
   } else if (scheduler == "local"){
     scheduler_fun <- LSchedulerJob
+    group_size <- 1
   }
 
-  group_size <- 1
   ngroups <- ceiling(nrow(jobs_needed)/group_size)
   jobs_needed$group <- rep(seq_len(ngroups), each = group_size, len = nrow(jobs_needed))
 
