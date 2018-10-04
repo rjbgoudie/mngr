@@ -102,8 +102,10 @@ lscheduler_start_next <- function(){
 lscheduler_number_running <- function(){
   running <- lscheduler_env$started & !lscheduler_env$finished
 
+  cat("which running: ", which(running), "\n")
   for (i in which(running)){
     if (!lscheduler_env$process[[i]]$is_alive()){
+      cat("process ", i, " just finished\n")
       lscheduler_env$finished[i] <- TRUE
     }
   }
@@ -112,24 +114,33 @@ lscheduler_number_running <- function(){
   sum(running)
 }
 
+# should really be called lscheduler_fill_unused_slots or similar
 lscheduler_run_next <- function(){
   number_running <- lscheduler_number_running()
-  everything_started <- all(lscheduler_env$started)
-
-  start_next <- lscheduler_start_next()
-  something_startable <- length(start_next) != 0
-
   throttle <- mngr_option_global_throttle()
+  available_slots <- max(0, throttle - number_running)
+  cat("Throttle is", throttle, ", and", available_slots, " are available\n")
+  while (available_slots > 0){
+    cat("available:",  available_slots, "\n")
+    everything_started <- all(lscheduler_env$started)
 
-  if (!everything_started && something_startable && number_running < throttle){
-    cat("RUNNING", paste(lscheduler_env$args[[start_next]]), "\n")
-    lscheduler_env$started[start_next] <- TRUE
-    cmd <- lscheduler_env$cmd[[start_next]]
-    args <- lscheduler_env$args[[start_next]]
-    p <- processx::process$new(command = cmd,
-                               args = args,
-                               windows_verbatim_args = TRUE)
-    lscheduler_env$process[[start_next]] <- p
+    start_next <- lscheduler_start_next()
+    something_startable <- length(start_next) != 0
+    cat("everything started:", everything_started,
+        ", something_startable:", something_startable, "\n")
+    if (!everything_started && something_startable){
+      cat("RUNNING", paste(lscheduler_env$args[[start_next]]), "\n")
+      lscheduler_env$started[start_next] <- TRUE
+      cmd <- lscheduler_env$cmd[[start_next]]
+      args <- lscheduler_env$args[[start_next]]
+      p <- processx::process$new(command = cmd,
+                                 args = args,
+                                 windows_verbatim_args = TRUE)
+      lscheduler_env$process[[start_next]] <- p
+    }
+    number_running <- lscheduler_number_running()
+    available_slots <- max(0, number_running - throttle)
+    cat("Throttle is", throttle, ", and", available_slots, " are available\n")
   }
 }
 
@@ -165,6 +176,19 @@ LSchedulerJob <- setRefClass(
     properties = "list"
   ),
   methods = list(
+    set_name = function(names){
+      "Input is a character vector of names of the task(s) that this job
+       corresponds to"
+      # just use the first name for now for simplicity
+      name <<- names[1]
+    },
+
+    set_prereqs = function(prereqs){
+      "Input is a list of lists, each component is a list of the prereqs of
+       that Task. We just use the union of prereqs"
+      prereqs <<- unique(as.character(unlist(prereqs)))
+    },
+
     execute = function(debug = FALSE){
       action_class <- sapply(actions, class)
       lapply(actions[action_class == "{"], eval.parent)
