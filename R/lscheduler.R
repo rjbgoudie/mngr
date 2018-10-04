@@ -219,10 +219,10 @@ LSchedulerJob <- setRefClass(
       out
     },
 
-    last_run_time = function(){
+    last_run_time_seconds = function(){
       path <- r_log_latest_file()
       if (file.exists(path)){
-        run_time(path)
+        run_time_seconds(path)
       } else {
         NULL
       }

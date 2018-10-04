@@ -150,16 +150,19 @@ SlurmJob <- setRefClass(
       }
     },
 
-    last_run_time = function(){
+    last_run_time_seconds = function(){
+      "Return the last run time of this job in seconds. If the job consists
+       of multiple tasks, the maximum is returned"
+
       paths <- r_log_latest_file()
-      run_times <- lapply(paths, function(path){
+      run_times_seconds <- lapply(paths, function(path){
         if (file.exists(path)){
-          run_time(path)
+          run_time_seconds(path)
         } else {
           NULL
         }
       })
-      out <- run_times[!sapply(run_times, is.null)]
+      out <- run_times_seconds[!sapply(run_times_seconds, is.null)]
       if (length(out) > 0){
         max(unlist(out))
       } else {
@@ -168,23 +171,23 @@ SlurmJob <- setRefClass(
     },
 
     predict_run_time = function(){
+      "Returns a character of format h:mm:ss with a prediction for the run time
+       needed for this job. It will either be the specified hours(), or
+       the last run time (+ 10 mins, with a floor of 14 mins) or 59 mins"
+
       if (length(properties$hours) > 0){
         sprintf("%d:00:00", properties$hours)
       } else {
-        last <- last_run_time()
-        if (!is.null(last)){
-          multiply <- 2
-          extra <- 10
-          overflow3 <- (multiply * last[3]) %/% 60
-          last[3] <- (multiply * last[3]) %% 60
-          overflow2 <- (multiply * last[2] + overflow3 + extra) %/% 60
-          last[2] <- (multiply * last[2] + overflow3 + extra) %% 60
-          overflow1 <- (multiply * last[1] + overflow2) %/% 60
-          last[1] <- (multiply * last[1] + overflow2) %% 60
-          args <- c("%d:%02d:%02d", as.list(last))
-          do.call("sprintf", args)
+        last_seconds <- last_run_time_seconds()
+        if (!is.null(last_seconds)){
+          ten_mins <- 10 * 60
+          fourteen_mins <- 14 * 60
+          # add on 10 mins to good luck
+          # don't use less than 30 mins
+          seconds <- max(last_seconds + ten_mins, fourteen_mins)
+          hms(seconds)
         } else {
-          "01:00:00"
+          "00:59:00"
         }
       }
     },
@@ -218,3 +221,14 @@ SlurmJob <- setRefClass(
     }
   )
 )
+
+#' Convert seconds to formatted h:mm:ss string
+#'
+#' @param seconds A numeric number of seconds
+#' @return A character vector of the time formatted as "h:mm:ss"
+hms <- function(seconds){
+  h <- seconds %/% 3600
+  m <- seconds %/% 60 %% 60
+  s <- seconds %% 60
+  sprintf("%d:%02d:%02d",  h,  m,  s)
+}

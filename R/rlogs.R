@@ -59,11 +59,13 @@ parse_rout_files <- function(paths, type = "rout"){
 #'
 #' Assumes the runtime appears in green on the final line of the R output
 #' @param path A path to an Rout log file
-run_time <- function(path){
+run_time_seconds <- function(path){
   final <- file_last_line(path)
   m <- regexec("1;42;30m([^h]+)h ([^m]+)m ([^s]+)s", final)
   if (m[[1]][1] != -1){
-    as.numeric(regmatches(final, m)[[1]][2:4])
+    parts <- as.numeric(regmatches(final, m)[[1]][2:4])
+    seconds <- c(360L, 60L, 1L) * parts
+    seconds
   } else {
     NULL
   }
