@@ -28,9 +28,7 @@ parse_name <- function(x, type = "rout"){
         rename(jobname = piece1)
       arm_pieces <- piece_names[-1]
 
-      # need a unique identifier for each row, otherwie spread_ below does not
-      # work. So add a dummy. Also required for other functions that assume a
-      # jid is present
+      # Other functions that assume a jid is present, so add dummy
       x$jid <- 1:nrow(x)
     } else if (type == "squeue"){
       x <- x %>%
@@ -38,6 +36,9 @@ parse_name <- function(x, type = "rout"){
         rename_("shortsha" = tail(piece_names, 1))
       arm_pieces <- piece_names[2:(npieces - 1)]
     }
+
+    # spread_ needs a unique identifier for each row, so add a dummy
+    x$row_id <- 1:nrow(x)
 
     x <- x %>% mutate_at(vars(one_of(arm_pieces)), funs(paste0("arm___", .)))
 
@@ -48,6 +49,7 @@ parse_name <- function(x, type = "rout"){
         separate_(arm_pieces[i], new_piece_names, "--") %>%
         spread_(new_piece_names[1], new_piece_names[2])
     }
+    x <- x %>% select(-row_id)
   } else {
     warning("Invalid job name found")
   }
