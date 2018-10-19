@@ -15,7 +15,12 @@ git_clone_or_pull <- function(dir = getwd()){
   }
   dir_git_toplevel <- dir_git_toplevel(dir)
   repo <- git2r::repository(path = dir_git_toplevel)
-  git_head_name <- git2r::head(repo)@name
+
+  if (packageVersion("git2r") >= "0.22.1"){
+    git_head_name <- git2r::repository_head(repo)$name
+  } else {
+    git_head_name <- git2r::head(repo)@name
+  }
 
   dir_run_branch_toplevel <- dir_run_branch_toplevel(dir = dir, check = TRUE)
   dir.create(dir_run_branch_toplevel, recursive = TRUE, showWarnings = FALSE)
