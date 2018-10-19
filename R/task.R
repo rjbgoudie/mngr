@@ -358,19 +358,23 @@ Task <- setRefClass(
         arm_seq <- seq_len(nrow(arms_local))
         list(purrr::map(arm_seq, function(i) list()))
       } else {
-        if (length(prerequisites) == 1 & prerequisites[[1]]$is_dummy()){
-          # With just one dummy prerequisite, just jump up a level
-          prerequisites[[1]]$prereq_ids_by_prereq(id = id,
-                                                  arms_local = arms_local)
-        } else {
-          lapply(prerequisites, function(task){
-            if (task$is_dummy()){
-              warning("Depending on more than one dummy not handled yet")
-            } else {
-              task$which_arms_involve(arms_local, id = id)
-            }
-          })
-        }
+        # need to handle dummy tasks separately, since we need to unlist
+        # their list (just once) so that the final list's top level is
+        # prerequisites (the dummy is essentially "integrated out")
+        are_dummies <- sapply(prerequisites, function(task){
+          task$is_dummy()
+        })
+
+        dummies <- lapply(prerequisites[are_dummies], function(task){
+          # jump up a level
+          task$prereq_ids_by_prereq(id = id, arms_local = arms_local)
+        })
+        dummies <- unlist(dummies, recursive = FALSE)
+
+        not_dummies <- lapply(prerequisites[!are_dummies], function(task){
+          task$which_arms_involve(arms_local, id = id)
+        })
+        c(dummies, not_dummies)
       }
     },
 
