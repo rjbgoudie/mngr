@@ -77,7 +77,9 @@ read_rds_merge <- function(...){
   if (!all(paths_exist)){
     message("The following paths don't exist:", all_paths[!paths_exist])
   }
-  lapply(all_paths, readRDS)
+  out <- lapply(all_paths, readRDS)
+  names(out) <- all_arms
+  out
 }
 
 expand_grid <- function(...){
