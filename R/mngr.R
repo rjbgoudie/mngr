@@ -57,8 +57,10 @@ dry_run <- function(){
   if (fs::dir_exists(state_dry_dir)){
     fs::dir_delete(state_dry_dir)
   }
-  copy_dir_retain_dates(from = state_dir,
-                        to = state_dry_dir)
+  if (fs::dir_exists(state_dir)){
+    copy_dir_retain_dates(from = state_dir,
+                          to = state_dry_dir)
+  }
   options(mngr_dir_state = state_dry_dir_fun)
 }
 
