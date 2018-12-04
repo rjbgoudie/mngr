@@ -113,8 +113,10 @@ squeue <- function(jobs = NULL,
 #'
 #' Displays a pretty table of the latest R output
 #'
+#' @param filter If TRUE, then only show failed jobs
+#'
 #' @export
-latest_logs <- function(){
+latest_logs <- function(filter = FALSE){
   with_dir(dir_run_branch(check = TRUE), {
     mngrfile <- find_mngrfile(getwd())
     mngr_config(pause_loading = TRUE)
@@ -124,7 +126,7 @@ latest_logs <- function(){
     r_log_latest_dir <- mngr_option_dir_r_logs_latest()(fs::path_tidy(getwd()))
     r_log_latest_file <- "*.Rout"
     logs_paths <- Sys.glob(file.path(r_log_latest_dir, r_log_latest_file))
-    rout_df <- parse_rout_files(logs_paths, type = "rlatest")
+    rout_df <- parse_rout_files(logs_paths, type = "rlatest", filter = filter)
     pretty_print_rout(rout_df)
   })
 }

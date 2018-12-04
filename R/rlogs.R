@@ -17,6 +17,8 @@ count_rout_errors <- function(log){
 #' Parse .Rout files to a data frame
 #'
 #' @param paths Character vector of paths to Rout files
+#' @param type Passed to parse_name
+#' @param filter If TRUE, then only show failed jobs
 #'
 #' A data.frame with the following columns:
 #'
@@ -25,7 +27,7 @@ count_rout_errors <- function(log){
 #' plus
 #'
 #' arm___xyz columns for each arm value
-parse_rout_files <- function(paths, type = "rout"){
+parse_rout_files <- function(paths, type = "rout", filter){
   warnings <- unname(sapply(paths, count_rout_warnings))
   errors <- unname(sapply(paths, count_rout_errors))
   final <- unname(sapply(paths, file_last_line))
@@ -48,6 +50,10 @@ parse_rout_files <- function(paths, type = "rout"){
       mutate(final = if_else(success == TRUE, "", final)) %>%
       select(jobname, jid, everything()) %>%
       select(-matches("final"), final)
+
+    if (filter){
+      x <- x %>% filter(!success)
+    }
   } else {
     warning("No logs found")
     NULL
