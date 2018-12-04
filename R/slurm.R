@@ -194,7 +194,7 @@ SlurmJob <- setRefClass(
 
     r_log_latest_file = function(){
       out <- character(length = length(arm_index))
-      for (index in arm_index){
+      for (index in seq_along(arm_index)){
         r_log_latest_dir <- mngr_option_dir_r_logs_latest()(fs::path_tidy(getwd()))
         fs::dir_create(r_log_latest_dir)
 
@@ -206,7 +206,7 @@ SlurmJob <- setRefClass(
 
     r_log_specific_file = function(){
       out <- character(length = length(arm_index))
-      for (index in arm_index){
+      for (index in seq_along(arm_index)){
         r_log_dir <- mngr_option_dir_r_logs()(fs::path_tidy(getwd()))
         fs::dir_create(r_log_dir)
         r_log_latest_file <- paste0(names[index], ".Rout")
