@@ -68,6 +68,9 @@ your ```.Rprofile```
    the Slurm Workload Manger for running the jobs on a cluster, or
    ```"local"``` to run the jobs on locally, using a simple R-based scheduler.
 
+   When the default is to use Slurm, the ```--local``` flag to ```mngr``` will
+   override this.
+
 2. Filepaths: ```mngr_dir_output``` and ```mngr_dir_run``` - see 'File locations
    and paths' section below for details.
 
