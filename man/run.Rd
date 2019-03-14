@@ -4,7 +4,7 @@
 \alias{run}
 \title{Execute a task}
 \usage{
-run(name = "default", dry_run = FALSE, debug = FALSE)
+run(name = "default", dry_run = FALSE, debug = FALSE, scheduler = NULL)
 }
 \arguments{
 \item{name}{a task name}
@@ -12,6 +12,8 @@ run(name = "default", dry_run = FALSE, debug = FALSE)
 \item{dry_run}{Don't actually execute tasks}
 
 \item{debug}{A logical, indicating whether to show debug messages}
+
+\item{scheduler}{Override the default scheduler}
 }
 \description{
 Actually run a task, and any prerequisites that have changed since the last

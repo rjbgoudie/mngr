@@ -78,8 +78,12 @@ dry_run <- function(){
 #' @param name a task name
 #' @param dry_run Don't actually execute tasks
 #' @param debug A logical, indicating whether to show debug messages
+#' @param scheduler Override the default scheduler
 #' @export
-run <- function(name = "default", dry_run = FALSE, debug = FALSE){
+run <- function(name = "default",
+                dry_run = FALSE,
+                debug = FALSE,
+                scheduler = NULL){
   is_inside_git_work_tree <- is_inside_git_work_tree()
   if (!is_inside_git_work_tree){
     stop("The directory is not in a git repository")
@@ -93,6 +97,10 @@ run <- function(name = "default", dry_run = FALSE, debug = FALSE){
     warning("Not cloning a clean respository:", clean)
   }
   git_clone_or_pull()
+
+  if (!is.null(scheduler)){
+    options(mngr_scheduler = scheduler)
+  }
 
   assign("jobids", c(), envir = slurm_env)
   with_dir(dir_run_branch(check = TRUE), {
@@ -166,16 +174,22 @@ run <- function(name = "default", dry_run = FALSE, debug = FALSE){
 }
 
 mngr_doc <- 'Usage:
-mngr [--dry-run] [--debug] [<task>]
+mngr [--dry-run] [--local] [--debug] [<task>]
 
 Options:
+--local  Run using the local scheduler
 --dry-run  Dry run
 --debug  Verbose'
 
 #' @export
 run_cmd <- function(args){
   opts <- docopt::docopt(mngr_doc, args = args)
-  cat(run(name = opts$task %||% "default",
-          dry_run = opts[["dry-run"]],
-          debug = opts$debug))
+  scheduler <- NULL
+  if (opts$local){
+    scheduler <- "local"
+  }
+  run(name = opts$task %||% "default",
+      dry_run = opts[["dry-run"]],
+      debug = opts$debug,
+      scheduler = scheduler)
 }
