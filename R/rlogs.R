@@ -27,7 +27,7 @@ count_rout_errors <- function(log){
 #' plus
 #'
 #' arm___xyz columns for each arm value
-parse_rout_files <- function(paths, type = "rout", filter){
+parse_rout_files <- function(paths, type = "rout", filter = FALSE){
   warnings <- unname(sapply(paths, count_rout_warnings))
   errors <- unname(sapply(paths, count_rout_errors))
   final <- unname(sapply(paths, file_last_line))
