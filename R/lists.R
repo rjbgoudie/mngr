@@ -114,6 +114,7 @@ pretty_print_rout <- function(x){
              w,
              final)
 
+    out <- link_to_arm_indicies(out)
     arm_cols <- substring(colnames(out), 1, 6) == "arm___"
     colnames(out)[arm_cols] <- paste0("\033[36m",
                                       substring(colnames(out), 7)[arm_cols],
@@ -126,6 +127,36 @@ pretty_print_rout <- function(x){
 
     cat_df(out)
   }
+}
+
+#' Merge rout status table with arm data
+#'
+#' Merges rout status table with arm data, so that even when mngr-latest-logs
+#' is run we still know which arm corresponds to which values etc
+#'
+#' @param x A data.frame with "arm___xxx" columns
+#'
+link_to_arm_indicies <- function(x){
+  link_to_arm_indicies_single_jobname <- function(x){
+    name <- x$jobname[1]
+    task_obj <- task_get(name)
+    arms <- task_obj$arms_to_invoke() %>%
+      select(-MNGR_DEFAULT_ARM) %>%
+      rowwise %>%
+      summarize_all(paste_or_hash) %>%
+      mutate(MNGR_ARM_ID = row_number())
+    arm_cols <- substring(colnames(x), 1, 6) == "arm___"
+    colnames(x)[arm_cols] <- substring(colnames(x)[arm_cols], 7)
+    left_join(x, arms, by = colnames(x)[arm_cols]) %>%
+      rename(arm_id = MNGR_ARM_ID) %>%
+      arrange(arm_id) %>%
+      select("jobname", "arm_id", everything())
+  }
+
+  x %>%
+    group_by(jobname) %>%
+    do(link_to_arm_indicies_single_jobname(.)) %>%
+    ungroup
 }
 
 pretty_print_merged <- function(full_status, slurm_status){
