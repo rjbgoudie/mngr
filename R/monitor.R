@@ -10,9 +10,13 @@ monitor <- function(jobs = NULL, logs = NULL, width = NULL){
   squeue_status <- NULL
   suppressWarnings({
     suppressMessages({
-      args <- commandArgs(TRUE)
-      if (is.null(width)){
-        width <- args[[2]]
+      if (interactive()){
+        width <- get_terminal_width()
+      } else {
+        args <- commandArgs(TRUE)
+        if (is.null(width)){
+          width <- args[[2]]
+        }
       }
       set_terminal_width(width)
       if (is.null(jobs)){
