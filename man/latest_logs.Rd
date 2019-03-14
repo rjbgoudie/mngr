@@ -4,7 +4,10 @@
 \alias{latest_logs}
 \title{Summaries the latest R output}
 \usage{
-latest_logs()
+latest_logs(filter = FALSE)
+}
+\arguments{
+\item{filter}{If TRUE, then only show failed jobs}
 }
 \description{
 Displays a pretty table of the latest R output

@@ -4,10 +4,14 @@
 \alias{parse_rout_files}
 \title{Parse .Rout files to a data frame}
 \usage{
-parse_rout_files(paths, type = "rout")
+parse_rout_files(paths, type = "rout", filter = FALSE)
 }
 \arguments{
-\item{paths}{Character vector of paths to Rout files
+\item{paths}{Character vector of paths to Rout files}
+
+\item{type}{Passed to parse_name}
+
+\item{filter}{If TRUE, then only show failed jobs
 
 A data.frame with the following columns:
 
